@@ -1,0 +1,34 @@
+{
+	"name": "phix/phix-cli",
+	"description": "phix-cli is an extensible, modular command-line tool",
+	"keywords": [
+		"args parser",
+		"getopt"
+	],
+	"homepage": "https://github.com/stuartherbert/phix-cli/",
+	"license": "BSD-3-Clause",
+	"authors": [
+		{
+			"name": "Stuart Herbert",
+			"email": "stuart@stuartherbert.com",
+			"homepage": "http://www.stuartherbert.com",
+			"role": "Developer"
+		}
+	],
+	"support": {
+		"issues": "https://github.com/stuartherbert/phix-cli/issues",
+		"source": "https://github.com/stuartherbert/phix-cli/"
+	},
+	"autoload": {
+		"psr-0": { "" : "src/php/" }
+	},
+	"require": {
+		"phix/autoloader4": "4.*",
+		"phix/commandlinelib4": "dev-develop",
+		"phix/consoledisplaylib4": "4.*",
+		"phix/validationlib4": "4.*"
+	},
+	"require-dev": {
+		"phix/autoloader4": "4.*"
+	}
+}
