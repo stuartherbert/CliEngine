@@ -44,7 +44,7 @@
 
 namespace Phix_Project\CliEngine;
 
-use Phix_Project\CommandLineLib3\DefinedSwitch;
+use Phix_Project\CommandLineLib4\DefinedSwitch;
 
 /**
  * Base class for all switches supported by the CLiEngine itself

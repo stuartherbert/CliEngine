@@ -65,10 +65,10 @@ class VersionSwitch extends CliEngineSwitch
 		parent::__construct('version', 'display app version number');
 
 		// what are the short switches?
-		$this->setWithShortSwitch('v');
+		$this->addShortSwitch('v');
 
 		// what are the long switches?
-		$this->setWithLongSwitch('version');
+		$this->addLongSwitch('version');
 	}
 
 	public function process(CliEngine $engine)
