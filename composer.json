@@ -1,11 +1,12 @@
 {
-	"name": "phix/phix-cli",
-	"description": "phix-cli is an extensible, modular command-line tool",
+	"name": "phix/CliEngine",
+	"description": "CliEngine is a quick and easy way to create your own command-line tools",
 	"keywords": [
-		"args parser",
-		"getopt"
+		"command line",
+		"CLI",
+		"shell"
 	],
-	"homepage": "https://github.com/stuartherbert/phix-cli/",
+	"homepage": "https://github.com/stuartherbert/CliEngine/",
 	"license": "BSD-3-Clause",
 	"authors": [
 		{
@@ -16,8 +17,8 @@
 		}
 	],
 	"support": {
-		"issues": "https://github.com/stuartherbert/phix-cli/issues",
-		"source": "https://github.com/stuartherbert/phix-cli/"
+		"issues": "https://github.com/stuartherbert/CliEngine/issues",
+		"source": "https://github.com/stuartherbert/CliEngine/"
 	},
 	"autoload": {
 		"psr-0": { "" : "src/php/" }
