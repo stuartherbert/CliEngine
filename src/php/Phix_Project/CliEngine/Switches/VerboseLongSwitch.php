@@ -86,7 +86,7 @@ class VerboseLongSwitch extends CliEngineSwitch
 		$def->addLongSwitch('verbose');
 
 		// this switch has an optional parameter
-		$def->setOptionalArg('level', 'how verbose to be');
+		$def->setOptionalArg('<level>', 'how verbose to be');
 		$def->setArgHasDefaultValueOf($this->min);
 		$def->setArgValidator(new Type_MustBeIntegerInRange($this->min, $this->max));
 

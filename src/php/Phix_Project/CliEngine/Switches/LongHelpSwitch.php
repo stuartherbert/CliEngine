@@ -46,6 +46,7 @@ namespace Phix_Project\CliEngine\Switches;
 
 use Phix_Project\CliEngine;
 use Phix_Project\CliEngine\CliEngineSwitch;
+use Phix_Project\CliEngine\Helpers\HelpHelper;
 
 /**
  * A nice generic '-h|-?|--help' switch for your CLI tool
@@ -63,7 +64,7 @@ class LongHelpSwitch extends CliEngineSwitch
 	public function getDefinition()
 	{
 		// define our name, and our description
-		$def = $this->newDefinition('longHelp', 'display full help message');
+		$def = $this->newDefinition('longHelp', 'display this help message');
 
 		// there are no short switches
 
@@ -77,11 +78,9 @@ class LongHelpSwitch extends CliEngineSwitch
 
 	public function process(CliEngine $engine, $invokes = 1, $params = array(), $isDefaultParam = false)
 	{
-		// write the version to the output
-		$engine->output->stdout->outputLine(
-			$engine->output->highlightStyle,
-			$engine->appVersion
-		);
+		// use the HelpHelper to do this
+		$hh = new HelpHelper();
+		$hh->showLongHelp($engine);
 
 		// tell the engine that it is done
 		return CliEngine::PROCESS_COMPLETE;

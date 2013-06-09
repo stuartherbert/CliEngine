@@ -81,11 +81,18 @@ class CliEngine
 	protected $appVersion;
 
 	/**
-	 * The copyright that the app is released under
+	 * Who holds the copyright for this app
 	 *
 	 * @var string
 	 */
 	protected $appCopyright;
+
+	/**
+	 * The license that this app has been released under
+	 *
+	 * @var string
+	 */
+	protected $appLicense;
 
 	/**
 	 * The URL to go to learn more about the app
@@ -181,6 +188,11 @@ class CliEngine
 		$this->appCopyright = $copyright;
 	}
 
+	public function setAppLicense($license)
+	{
+		$this->appLicense = $license;
+	}
+
 	public function setAppUrl($url)
 	{
 		$this->appUrl = $url;
@@ -235,7 +247,6 @@ class CliEngine
 			if (!isset($parsed->switches[$defName]))
 			{
 				// nothing to see ... move along ... move along
-				echo "Skipping {$defName}\n";
 				continue;
 			}
 
@@ -257,8 +268,6 @@ class CliEngine
 				return 0;
 			}
 		}
-
-		var_dump($this->options);
 
 		// find the command
 
@@ -283,13 +292,23 @@ class CliEngine
 		return $this->appCopyright;
 	}
 
+	public function getAppLicense()
+	{
+		return $this->appLicense;
+	}
+
 	public function getAppUrl()
 	{
-		return $this->getAppUrl;
+		return $this->appUrl;
 	}
 
 	public function getAppVersion()
 	{
 		return $this->appVersion;
+	}
+
+	public function getEngineSwitchDefinitions()
+	{
+		return $this->engineSwitchDefinitions;
 	}
 }

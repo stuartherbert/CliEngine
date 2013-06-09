@@ -46,6 +46,7 @@ namespace Phix_Project\CliEngine\Switches;
 
 use Phix_Project\CliEngine;
 use Phix_Project\CliEngine\CliEngineSwitch;
+use Phix_Project\CliEngine\Helpers\HelpHelper;
 
 /**
  * A nice generic '-h|-?|--help' switch for your CLI tool
@@ -63,7 +64,7 @@ class ShortHelpSwitch extends CliEngineSwitch
 	public function getDefinition()
 	{
 		// define our name, and our description
-		$def = $this->newDefinition('shortHelp', 'display this help message');
+		$def = $this->newDefinition('shortHelp', 'display summary of supported switches');
 
 		// what are the short switches?
 		$def->addShortSwitch('h');
@@ -77,6 +78,10 @@ class ShortHelpSwitch extends CliEngineSwitch
 
 	public function process(CliEngine $engine, $invokes = 1, $params = array(), $isDefaultParam = false)
 	{
+		// use the HelpHelper to do this
+		$hh = new HelpHelper();
+		$hh->showShortHelp($engine);
+
 		// tell the engine that it is done
 		return CliEngine::PROCESS_COMPLETE;
 	}

@@ -88,17 +88,17 @@ class OutputWriter
                 $so = $this->stdout;
 
                 // set the colours to use for our styles
-                $this->argStyle = $so->style(array(ConsoleColor::BOLD, ConsoleColor::BLUE_FG));
-                $this->commandStyle = $so->style(array(ConsoleColor::BOLD, ConsoleColor::GREEN_FG));
-                $this->commentStyle = $so->style(array(ConsoleColor::BLUE_FG));
-                $this->errorStyle = $so->style(array(ConsoleColor::BOLD, ConsoleColor::RED_FG));
-                $this->exampleStyle = $so->style(array(ConsoleColor::BOLD, ConsoleColor::YELLOW_FG));
-                $this->highlightStyle = $so->style(array(ConsoleColor::BOLD, ConsoleColor::GREEN_FG));
-                $this->normalStyle = $so->style(array(ConsoleColor::NONE));
-                $this->switchStyle = $so->style(array(ConsoleColor::BOLD, ConsoleColor::YELLOW_FG));
-                $this->urlStyle = $so->style(array(ConsoleColor::BOLD, ConsoleColor::BLUE_FG));
+                $this->argStyle = array(ConsoleColor::BOLD, ConsoleColor::BLUE_FG);
+                $this->commandStyle = array(ConsoleColor::BOLD, ConsoleColor::GREEN_FG);
+                $this->commentStyle = array(ConsoleColor::BLUE_FG);
+                $this->errorStyle = array(ConsoleColor::BOLD, ConsoleColor::RED_FG);
+                $this->exampleStyle = array(ConsoleColor::BOLD, ConsoleColor::YELLOW_FG);
+                $this->highlightStyle = array(ConsoleColor::BOLD, ConsoleColor::GREEN_FG);
+                $this->normalStyle = array(ConsoleColor::NONE);
+                $this->switchStyle = array(ConsoleColor::BOLD, ConsoleColor::YELLOW_FG);
+                $this->urlStyle = array(ConsoleColor::BOLD, ConsoleColor::BLUE_FG);
 
                 // set up any prefixes that we want to use
-                $this->errorPrefix = $this->errorStyle . "*** error: " . $this->normalStyle;
+                $this->errorPrefix = "*** error: ";
         }
 }
