@@ -104,7 +104,7 @@ class VerboseLongSwitch extends CliEngineSwitch
 		// any problems
 		if ($isDefaultParam)
 		{
-			return CliEngine::PROCESS_CONTINUE;
+			return new CliResult(CliResult::PROCESS_CONTINUE);
 		}
 
 		// set the new verbosity level

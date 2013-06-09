@@ -48,10 +48,12 @@ use stdClass;
 
 use Phix_Project\CliEngine\CliCommand;
 use Phix_Project\CliEngine\CliEngineSwitch;
+use Phix_Project\CliEngine\CliResult;
 use Phix_Project\CliEngine\OutputWriter;
 
 use Phix_Project\CommandLineLib4\CommandLineParser;
 use Phix_Project\CommandLineLib4\DefinedSwitches;
+use Phix_Project\CommandLineLib4\ParsedCommandLine;
 
 /**
  * Main interface into Phix's CLI engine
@@ -151,8 +153,14 @@ class CliEngine
 
 	public function __construct()
 	{
+		// we start with an empty list of switch definitions
 		$this->engineSwitchDefinitions = new DefinedSwitches();
+
+		// we start with an empty options sectoin
 		$this->options = new stdClass();
+
+		// create our output writer
+		$this->output = new OutputWriter();
 	}
 
 	// ==================================================================
@@ -216,9 +224,47 @@ class CliEngine
 
 	public function main($argv)
 	{
-		// create our output writer
-		$this->output = new OutputWriter();
+		// parse the switches before any command
+		$parsed = $this->parseEngineSwitches($argv);
+		if ($parsed === null)
+		{
+			// an error occurred
+			return 1;
+		}
 
+		// now process the switches that we have
+		$continue = $this->processEngineSwitches($parsed->switches);
+		if ($continue->isComplete())
+		{
+			return $continue->returnCode;
+		}
+
+		// at this point, all of the active switches have done their
+		// thing, and may have updated the contents of $this->options
+		//
+		// now we need to find our command to execute
+		list($command, $cmdSwitches, $cmdArgs) = $this->findCommand($parsed->args);
+
+		// if there are switches, they need processing
+		if ($cmdSwitches !== null)
+		{
+			$continue = $command->processSwitches($this, $parsed->switches);
+			if ($continue->isComplete())
+			{
+				// all done
+				return $continue->returnCode;
+			}
+		}
+
+		// now we are ready to execute the command
+		$result = $command->processCommand($this, $cmdArgs);
+
+		// all done
+		return $result;
+	}
+
+	protected function parseEngineSwitches($argv)
+	{
 		// parse the switches before any command
 		$parser = new CommandLineParser();
 		$parsed = $parser->parseCommandLine($argv, 1, $this->engineSwitchDefinitions);
@@ -235,23 +281,29 @@ class CliEngine
 				);
 			}
 
-			// all done
-			return 1;
+			// that could have gone better
+			return null;
 		}
 
+		// if we get here, all is well
+		return $parsed;
+	}
+
+	protected function processEngineSwitches($parsedSwitches)
+	{
 		// execute each switch that has been used on the command line
 		// (or that has a default value), in the order that they were
 		// added to the engine
 		foreach ($this->engineSwitches as $defName => $switch)
 		{
-			if (!isset($parsed->switches[$defName]))
+			if (!isset($parsedSwitches[$defName]))
 			{
 				// nothing to see ... move along ... move along
 				continue;
 			}
 
 			// shorthand
-			$parsedSwitch = $parsed->switches[$defName];
+			$parsedSwitch = $parsedSwitches[$defName];
 
 			// tell the switch to do its thing
 			$continue = $switch->process(
@@ -261,19 +313,83 @@ class CliEngine
 				$parsedSwitch->isUsingDefaultValue
 			);
 
+			// did we get a valid CliResult object back?
+			if (! $continue instanceof CliResult)
+			{
+				var_dump($continue);
+				// programming error
+				die("Switch " . get_class($switch) . "::process() did not return a CliResult object\n");
+			}
+
 			// does this switch want everything to stop?
 			if ($continue->isComplete())
 			{
 				// all done
-				return $continue->returnCode;
+				return $continue;
 			}
 		}
 
-		// find the command
+		// if we get here, all is well
+		return new CliResult(CliResult::PROCESS_CONTINUE);
+	}
 
-		// parse any switches for that command
+	protected function findCommand($argv)
+	{
+		// do we *have* a command?
+		if (count($argv) == 0)
+		{
+			// no - use the default command
+			$command     = $this->defaultCommand;
+			$cmdSwitches = null;
+			$cmdArgs     = array();
+		}
+		else
+		{
+			// isolate the command name
+			$commandName = $argv[0];
 
-		// execute the command
+			// now, do we have this command?
+			if (!isset($this->allCommands[$commandName]))
+			{
+				die("Unknown command '{$commandName}'");
+			}
+
+			// we have our command
+			$command = $this->allCommands[$commandName];
+
+			// we need to parse the remaining arguments for additional
+			// switches
+			$cmdSwitchDefs = $command->getSwitchDefinitions();
+			if ($cmdSwitchDefs instanceof DefinedSwitches)
+			{
+				// parse the remaining command line
+				$parser = new CommandLineParser();
+				$parsed = $parser->parseCommandLine($argv, 1, $cmdSwitchDefs);
+
+				// we have some switches to deal with later
+				$cmdSwitches = $parsed->switches;
+
+				// the remaining args are the args into the command
+				$cmdArgs = $parsed->args;
+			}
+			else
+			{
+				// the command has no switches, with simplifies things
+				// a lot
+				$cmdSwitches = null;
+				if (count($argv) > 1)
+				{
+					$cmdArgs = array_slice($argv, 1);
+				}
+				else
+				{
+					$cmdArgs = array();
+				}
+			}
+		}
+
+		// all done
+		return array($command, $cmdSwitches, $cmdArgs);
 	}
 
 	// ==================================================================
@@ -305,6 +421,21 @@ class CliEngine
 	public function getAppVersion()
 	{
 		return $this->appVersion;
+	}
+
+	public function getCommand($name)
+	{
+		if (isset($this->allCommands[$name]))
+		{
+			return $this->allCommands[$name];
+		}
+
+		return null;
+	}
+
+	public function getCommandsList()
+	{
+		return $this->allCommands;
 	}
 
 	public function getEngineSwitchDefinitions()

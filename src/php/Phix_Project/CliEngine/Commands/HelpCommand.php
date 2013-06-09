@@ -44,7 +44,9 @@
 
 namespace Phix_Project\CliEngine\Commands;
 
+use Phix_Project\CliEngine;
 use Phix_Project\CliEngine\CliCommand;
+use Phix_Project\CliEngine\Helpers\HelpHelper;
 
 /**
  * A nice generic 'help' command
@@ -62,11 +64,44 @@ class HelpCommand extends CliCommand
 	public function __construct()
 	{
 		$this->setName('help');
+		$this->setArgsList(array(
+			"[<command>]" => "get help about a specific command"
+		));
+		$this->setShortDescription('get help about this tool or about a specific command');
+		$this->setLongDescription(
+			"Use this command to get a list of all of the commands that this tool provides."
+			.PHP_EOL
+			.PHP_EOL
+			."If you use the optional <command> parameter, you'll see detailed help about"
+			." just that specific command."
+			.PHP_EOL
+		);
 	}
 
-	public function process(CliEngine $engine)
+	public function processCommand(CliEngine $engine, $params = array())
 	{
+		// use the HelpHelper to do this
+		$hh = new HelpHelper();
+
+		// do they want help just about the tool itself?
+		if (count($params) == 0)
+		{
+			// show the man page-like output
+			$hh->showLongHelp($engine);
+
+			// tell the engine that it is done
+			return 0;
+		}
+
+		// if we get here, they want help about a specific command
+		$command = $engine->getCommand($params[0]);
+		if (!$command instanceof CliCommand)
+		{
+			die("Cannot provide help for unknown command '{$params[0]}'\n");
+		}
+		$command->outputHelp($engine);
+
 		// tell the engine that it is done
-		return CliEngine::PROCESS_COMPLETE;
+		return 0;
 	}
 }

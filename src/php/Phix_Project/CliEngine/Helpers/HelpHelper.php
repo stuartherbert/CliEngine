@@ -98,7 +98,7 @@ class HelpHelper
         $so->outputBlankLine();
         $this->showSynopsis($op, $so, $engine->getAppName(), $sortedSwitches);
         $this->showOptionsList($op, $so, $sortedSwitches);
-        $this->showCommandsList($op, $so, $engine->getAppName(), array());
+        $this->showCommandsList($op, $so, $engine->getAppName(), $engine->getCommandsList());
     }
 
     protected function showSynopsis($op, $so, $appName, $sortedSwitches)
@@ -191,7 +191,7 @@ class HelpHelper
             $so->addIndent($maxlen + 1);
             $so->output($op->commentStyle, '# ');
             $so->addIndent(2);
-            $so->outputLine(null, $command->getCommandDesc());
+            $so->outputLine(null, $command->getShortDescription());
             $so->addIndent(0 - $maxlen - 3);
         }
 
