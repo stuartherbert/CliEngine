@@ -4,5 +4,6 @@ composer.phar
 dist
 nbproject
 review
+.tags*
 .tmp
 vendor
