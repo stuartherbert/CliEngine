@@ -1,5 +1,5 @@
 {
-	"name": "phix/CliEngine",
+	"name": "phix/cliengine",
 	"description": "CliEngine is a quick and easy way to create your own command-line tools",
 	"keywords": [
 		"command line",
