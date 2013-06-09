@@ -46,6 +46,7 @@ namespace Phix_Project\CliEngine\Switches;
 
 use Phix_Project\CliEngine;
 use Phix_Project\CliEngine\CliEngineSwitch;
+use Phix_Project\CliEngine\CliResult;
 
 use Phix_Project\ValidationLib4\Type_MustBeIntegerInRange;
 
@@ -110,6 +111,6 @@ class VerboseLongSwitch extends CliEngineSwitch
 		$engine->options->verbosity = $params[0];
 
 		// tell the engine to carry on
-		return CliEngine::PROCESS_CONTINUE;
+		return new CliResult(CliResult::PROCESS_CONTINUE);
 	}
 }

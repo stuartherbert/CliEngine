@@ -262,10 +262,10 @@ class CliEngine
 			);
 
 			// does this switch want everything to stop?
-			if ($continue == self::PROCESS_COMPLETE)
+			if ($continue->isComplete())
 			{
 				// all done
-				return 0;
+				return $continue->returnCode;
 			}
 		}
 

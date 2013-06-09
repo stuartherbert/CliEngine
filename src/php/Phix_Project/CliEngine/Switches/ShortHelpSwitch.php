@@ -46,6 +46,7 @@ namespace Phix_Project\CliEngine\Switches;
 
 use Phix_Project\CliEngine;
 use Phix_Project\CliEngine\CliEngineSwitch;
+use Phix_Project\CliEngine\CliResult;
 use Phix_Project\CliEngine\Helpers\HelpHelper;
 
 /**
@@ -80,9 +81,18 @@ class ShortHelpSwitch extends CliEngineSwitch
 	{
 		// use the HelpHelper to do this
 		$hh = new HelpHelper();
-		$hh->showShortHelp($engine);
+
+		// do they want the summary, or the full thing?
+		if ($invokes == 1)
+		{
+			$hh->showShortHelp($engine);
+		}
+		else
+		{
+			$hh->showLongHelp($engine);
+		}
 
 		// tell the engine that it is done
-		return CliEngine::PROCESS_COMPLETE;
+		return new CliResult(0);
 	}
 }

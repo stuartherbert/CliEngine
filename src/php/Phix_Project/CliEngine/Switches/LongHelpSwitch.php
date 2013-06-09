@@ -46,6 +46,7 @@ namespace Phix_Project\CliEngine\Switches;
 
 use Phix_Project\CliEngine;
 use Phix_Project\CliEngine\CliEngineSwitch;
+use Phix_Project\CliEngine\CliResult;
 use Phix_Project\CliEngine\Helpers\HelpHelper;
 
 /**
@@ -82,7 +83,8 @@ class LongHelpSwitch extends CliEngineSwitch
 		$hh = new HelpHelper();
 		$hh->showLongHelp($engine);
 
-		// tell the engine that it is done
-		return CliEngine::PROCESS_COMPLETE;
+		// tell the engine that we've finished
+		$return = new CliResult(0);
+		return $return;
 	}
 }

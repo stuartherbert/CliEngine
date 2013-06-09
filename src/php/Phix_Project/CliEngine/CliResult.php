@@ -42,14 +42,10 @@
  * @version     @@PACKAGE_VERSION@@
  */
 
-namespace Phix_Project\CliEngine\Switches;
-
-use Phix_Project\CliEngine;
-use Phix_Project\CliEngine\CliEngineSwitch;
-use Phix_Project\CliEngine\CliResult;
+namespace Phix_Project\CliEngine;
 
 /**
- * A nice generic '-v|--version' switch for your CLI tool
+ * Tell the CliEngine whether to continue or not
  *
  * @package     Phix_Project
  * @subpackage  CliEngine
@@ -59,32 +55,39 @@ use Phix_Project\CliEngine\CliResult;
  * @link        http://www.phix-project.org
  * @version     @@PACKAGE_VERSION@@
  */
-class VersionSwitch extends CliEngineSwitch
+class CliResult
 {
-	public function getDefinition()
+	const PROCESS_COMPLETE = -1;
+	const PROCESS_CONTINUE = -2;
+
+	public $returnCode = 0;
+	public $processState = -2;
+
+	public function __construct($processStateOrReturnCode)
 	{
-		// define our name, and our description
-		$def = $this->newDefinition('version', 'display app version number');
-
-		// what are the short switches?
-		$def->addShortSwitch('v');
-
-		// what are the long switches?
-		$def->addLongSwitch('version');
-
-		// all done
-		return $def;
+		if ($processStateOrReturnCode < 0)
+		{
+			$this->processState = $processStateOrReturnCode;
+		}
+		else
+		{
+			$this->setReturnCode($processStateOrReturnCode);
+		}
 	}
 
-	public function process(CliEngine $engine, $invokes = 1, $params = array(), $isDefaultParam = false)
+	public function setReturnCode($returnCode)
 	{
-		// write the version to the output
-		$engine->output->stdout->outputLine(
-			$engine->output->highlightStyle,
-			$engine->getAppVersion()
-		);
+		$this->returnCode = $returnCode;
+		$this->processState = self::PROCESS_COMPLETE;
+	}
 
-		// tell the engine that it is done
-		return new CliResult(0);
+	public function shouldContinue()
+	{
+		return ($this->processState == self::PROCESS_CONTINUE);
+	}
+
+	public function isComplete()
+	{
+		return (!$this->shouldContinue());
 	}
 }

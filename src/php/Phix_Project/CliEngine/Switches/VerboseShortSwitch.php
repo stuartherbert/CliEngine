@@ -46,6 +46,7 @@ namespace Phix_Project\CliEngine\Switches;
 
 use Phix_Project\CliEngine;
 use Phix_Project\CliEngine\CliEngineSwitch;
+use Phix_Project\CliEngine\CliResult;
 
 /**
  * A nice generic '-V|--verbose' switch for your CLI tool
@@ -91,6 +92,6 @@ class VerboseShortSwitch extends CliEngineSwitch
 		$engine->options->verbosity = min($invokes, $this->max);
 
 		// tell the engine to continue
-		return CliEngine::PROCESS_CONTINUE;
+		return new CliResult(CliResult::PROCESS_CONTINUE);
 	}
 }
