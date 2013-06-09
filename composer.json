@@ -23,12 +23,12 @@
 		"psr-0": { "" : "src/php/" }
 	},
 	"require": {
-		"phix/autoloader4": "4.*",
-		"phix/commandlinelib4": "dev-develop",
-		"phix/consoledisplaylib4": "4.*",
-		"phix/validationlib4": "4.*"
+		"phix/autoloader": "4.*",
+		"phix/commandlinelib": "dev-develop",
+		"phix/consoledisplaylib": "4.*",
+		"phix/validationlib": "4.*"
 	},
 	"require-dev": {
-		"phix/autoloader4": "4.*"
+		"phix/autoloader": "4.*"
 	}
 }

@@ -44,6 +44,7 @@
 
 namespace Phix_Project\CliEngine\Switches;
 
+use Phix_Project\CliEngine;
 use Phix_Project\CliEngine\CliEngineSwitch;
 
 /**
@@ -59,26 +60,23 @@ use Phix_Project\CliEngine\CliEngineSwitch;
  */
 class ShortHelpSwitch extends CliEngineSwitch
 {
-	public function __construct()
+	public function getDefinition()
 	{
 		// define our name, and our description
-		parent::__construct('shortHelp', 'display this help message');
+		$def = $this->newDefinition('shortHelp', 'display this help message');
 
 		// what are the short switches?
-		$this->addShortSwitch('h');
-		$this->addShortSwitch('?');
+		$def->addShortSwitch('h');
+		$def->addShortSwitch('?');
 
 		// we have no long switches
+
+		// all done
+		return $def;
 	}
 
-	public function process(CliEngine $engine)
+	public function process(CliEngine $engine, $invokes = 1, $params = array(), $isDefaultParam = false)
 	{
-		// write the version to the output
-		$engine->output->stdout->outputLine(
-			$engine->output->highlightStyle,
-			$engine->appVersion
-		);
-
 		// tell the engine that it is done
 		return CliEngine::PROCESS_COMPLETE;
 	}

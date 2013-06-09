@@ -44,6 +44,7 @@
 
 namespace Phix_Project\CliEngine\Switches;
 
+use Phix_Project\CliEngine;
 use Phix_Project\CliEngine\CliEngineSwitch;
 
 /**
@@ -59,19 +60,22 @@ use Phix_Project\CliEngine\CliEngineSwitch;
  */
 class LongHelpSwitch extends CliEngineSwitch
 {
-	public function __construct()
+	public function getDefinition()
 	{
 		// define our name, and our description
-		parent::__construct('longHelp', 'display full help message');
+		$def = $this->newDefinition('longHelp', 'display full help message');
 
 		// there are no short switches
 
 		// what are our long switches?
-		$this->addLongSwitch('help');
-		$this->addLongSwitch('?');
+		$def->addLongSwitch('help');
+		$def->addLongSwitch('?');
+
+		// all done
+		return $def;
 	}
 
-	public function process(CliEngine $engine)
+	public function process(CliEngine $engine, $invokes = 1, $params = array(), $isDefaultParam = false)
 	{
 		// write the version to the output
 		$engine->output->stdout->outputLine(

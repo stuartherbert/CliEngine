@@ -44,6 +44,7 @@
 
 namespace Phix_Project\CliEngine\Switches;
 
+use Phix_Project\CliEngine;
 use Phix_Project\CliEngine\CliEngineSwitch;
 
 /**
@@ -59,24 +60,27 @@ use Phix_Project\CliEngine\CliEngineSwitch;
  */
 class VersionSwitch extends CliEngineSwitch
 {
-	public function __construct()
+	public function getDefinition()
 	{
 		// define our name, and our description
-		parent::__construct('version', 'display app version number');
+		$def = $this->newDefinition('version', 'display app version number');
 
 		// what are the short switches?
-		$this->addShortSwitch('v');
+		$def->addShortSwitch('v');
 
 		// what are the long switches?
-		$this->addLongSwitch('version');
+		$def->addLongSwitch('version');
+
+		// all done
+		return $def;
 	}
 
-	public function process(CliEngine $engine)
+	public function process(CliEngine $engine, $invokes = 1, $params = array(), $isDefaultParam = false)
 	{
 		// write the version to the output
 		$engine->output->stdout->outputLine(
 			$engine->output->highlightStyle,
-			$engine->appVersion
+			$engine->getAppVersion()
 		);
 
 		// tell the engine that it is done

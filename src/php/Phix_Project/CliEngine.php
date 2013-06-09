@@ -44,9 +44,14 @@
 
 namespace Phix_Project;
 
+use stdClass;
+
 use Phix_Project\CliEngine\CliCommand;
 use Phix_Project\CliEngine\CliEngineSwitch;
 use Phix_Project\CliEngine\OutputWriter;
+
+use Phix_Project\CommandLineLib4\CommandLineParser;
+use Phix_Project\CommandLineLib4\DefinedSwitches;
 
 /**
  * Main interface into Phix's CLI engine
@@ -113,9 +118,35 @@ class CliEngine
 	 */
 	protected $engineSwitches = array();
 
+	/**
+	 * A list of all of the parser definitions for the switches that we
+	 * accept
+	 *
+	 * @var DefinedSwitches
+	 */
+	protected $engineSwitchDefinitions;
 
 	const PROCESS_COMPLETE = 1;
 	const PROCESS_CONTINUE = 2;
+
+	/**
+	 * options set by the engine switches
+	 *
+	 * @var stdClass
+	 */
+	public $options;
+
+	// ==================================================================
+	//
+	// constructor and internal initialisation
+	//
+	// ------------------------------------------------------------------
+
+	public function __construct()
+	{
+		$this->engineSwitchDefinitions = new DefinedSwitches();
+		$this->options = new stdClass();
+	}
 
 	// ==================================================================
 	//
@@ -125,7 +156,9 @@ class CliEngine
 
 	public function addEngineSwitch(CliEngineSwitch $switch)
 	{
-		// $this->engineSwitches[$switch->longname] = $switch;
+		$definition = $switch->getDefinition();
+		$this->engineSwitchDefinitions->addSwitch($definition);
+		$this->engineSwitches[$definition->name] = $switch;
 	}
 
 	public function addCommand(CliCommand $command)
@@ -175,11 +208,88 @@ class CliEngine
 		$this->output = new OutputWriter();
 
 		// parse the switches before any command
+		$parser = new CommandLineParser();
+		$parsed = $parser->parseCommandLine($argv, 1, $this->engineSwitchDefinitions);
+
+		// were there any errors?
+		if (count($parsed->errors))
+		{
+			// yes - something went wrong
+			foreach ($parsed->errors as $errorMsg)
+			{
+				$this->output->stderr->outputLine(
+					$this->output->errorPrefix .
+					$errorMsg . "\n"
+				);
+			}
+
+			// all done
+			return 1;
+		}
+
+		// execute each switch that has been used on the command line
+		// (or that has a default value), in the order that they were
+		// added to the engine
+		foreach ($this->engineSwitches as $defName => $switch)
+		{
+			if (!isset($parsed->switches[$defName]))
+			{
+				// nothing to see ... move along ... move along
+				echo "Skipping {$defName}\n";
+				continue;
+			}
+
+			// shorthand
+			$parsedSwitch = $parsed->switches[$defName];
+
+			// tell the switch to do its thing
+			$continue = $switch->process(
+				$this,
+				$parsedSwitch->invokes,
+				$parsedSwitch->values,
+				$parsedSwitch->isUsingDefaultValue
+			);
+
+			// does this switch want everything to stop?
+			if ($continue == self::PROCESS_COMPLETE)
+			{
+				// all done
+				return 0;
+			}
+		}
+
+		var_dump($this->options);
 
 		// find the command
 
 		// parse any switches for that command
 
 		// execute the command
+	}
+
+	// ==================================================================
+	//
+	// Getters
+	//
+	// ------------------------------------------------------------------
+
+	public function getAppName()
+	{
+		return $this->appName;
+	}
+
+	public function getAppCopyright()
+	{
+		return $this->appCopyright;
+	}
+
+	public function getAppUrl()
+	{
+		return $this->getAppUrl;
+	}
+
+	public function getAppVersion()
+	{
+		return $this->appVersion;
 	}
 }

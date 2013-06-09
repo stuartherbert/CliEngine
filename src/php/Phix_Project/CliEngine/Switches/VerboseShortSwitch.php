@@ -42,15 +42,13 @@
  * @version     @@PACKAGE_VERSION@@
  */
 
-namespace Phix_Project\CliEngine;
+namespace Phix_Project\CliEngine\Switches;
 
-use Phix_Project\CommandLineLib3\DefinedSwitches;
-use Phix_Project\ConsoleDisplayLib4\ConsoleColor;
-use Phix_Project\ConsoleDisplayLib4\StdOut;
-use Phix_Project\ConsoleDisplayLib4\StdErr;
+use Phix_Project\CliEngine;
+use Phix_Project\CliEngine\CliEngineSwitch;
 
 /**
- * Looks after all output on behalf of the CliEngine
+ * A nice generic '-V|--verbose' switch for your CLI tool
  *
  * @package     Phix_Project
  * @subpackage  CliEngine
@@ -60,45 +58,39 @@ use Phix_Project\ConsoleDisplayLib4\StdErr;
  * @link        http://www.phix-project.org
  * @version     @@PACKAGE_VERSION@@
  */
-
-class OutputWriter
+class VerboseShortSwitch extends CliEngineSwitch
 {
-        public $argStyle = null;
-        public $commentStyle = null;
-        public $errorStyle = null;
-        public $exampleStyle = null;
-        public $highlightStyle = null;
-        public $normalStyle = null;
-        public $switchStyle = null;
-        public $urlStyle = null;
+	public function __construct($engineOptions, $min, $max)
+	{
+		// remember our range
+		$this->min = $min;
+		$this->max = $max;
 
-        public $errorPrefix = null;
+		// set the default for our 'verbosity' level
+		$engineOptions->verbosity = $min;
+	}
 
-        public function __construct()
-        {
-                $this->stdout = new Stdout;
-                $this->stderr = new Stderr;
+	public function getDefinition()
+	{
+		// define our name, and our description
+		$def = $this->newDefinition('shortVerbose', 'increase amount of information shown');
 
-                $this->setupStyles();
-        }
+		// what are the short switches?
+		$def->addShortSwitch('V');
 
-        protected function setupStyles()
-        {
-                // shorthand
-                $so = $this->stdout;
+		// this switch is repeatable
+		$def->setSwitchIsRepeatable();
 
-                // set the colours to use for our styles
-                $this->argStyle = $so->style(array(ConsoleColor::BOLD, ConsoleColor::BLUE_FG));
-                $this->commandStyle = $so->style(array(ConsoleColor::BOLD, ConsoleColor::GREEN_FG));
-                $this->commentStyle = $so->style(array(ConsoleColor::BLUE_FG));
-                $this->errorStyle = $so->style(array(ConsoleColor::BOLD, ConsoleColor::RED_FG));
-                $this->exampleStyle = $so->style(array(ConsoleColor::BOLD, ConsoleColor::YELLOW_FG));
-                $this->highlightStyle = $so->style(array(ConsoleColor::BOLD, ConsoleColor::GREEN_FG));
-                $this->normalStyle = $so->style(array(ConsoleColor::NONE));
-                $this->switchStyle = $so->style(array(ConsoleColor::BOLD, ConsoleColor::YELLOW_FG));
-                $this->urlStyle = $so->style(array(ConsoleColor::BOLD, ConsoleColor::BLUE_FG));
+		// all done
+		return $def;
+	}
 
-                // set up any prefixes that we want to use
-                $this->errorPrefix = $this->errorStyle . "*** error: " . $this->normalStyle;
-        }
+	public function process(CliEngine $engine, $invokes = 1, $params = array(), $isDefaultParam = false)
+	{
+		// increase the verbosity to reflect how many times we've been called
+		$engine->options->verbosity = min($invokes, $this->max);
+
+		// tell the engine to continue
+		return CliEngine::PROCESS_CONTINUE;
+	}
 }
