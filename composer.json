@@ -25,7 +25,7 @@
 	},
 	"require": {
 		"phix/autoloader": "4.*",
-		"phix/commandlinelib": "dev-develop",
+		"phix/commandlinelib": "@dev",
 		"phix/consoledisplaylib": "4.*",
 		"phix/validationlib": "4.*"
 	},
