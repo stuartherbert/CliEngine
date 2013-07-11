@@ -44,6 +44,8 @@
 
 namespace Phix_Project\CliEngine;
 
+use Phix_Project\CommandLineLib4\DefinedSwitch;
+
 /**
  * Base class for all switches supported by individual CliCommands
  *
@@ -55,6 +57,23 @@ namespace Phix_Project\CliEngine;
  * @link        http://www.phix-project.org
  * @version     @@PACKAGE_VERSION@@
  */
-class CliCommandSwitch
+abstract class CliCommandSwitch
 {
+	/**
+	 * create a new DefinedSwitch, for further definition
+	 *
+	 * @param  string $name
+	 *         the unique name of this switch
+	 * @param  string $shortDesc
+	 *         a short summary of what this switch does
+	 * @return Phix_Project\CommandLineSwitch4\DefinedSwitch
+	 */
+	protected function newDefinition($name, $shortDesc)
+	{
+		$switch = new DefinedSwitch($name, $shortDesc);
+		return $switch;
+	}
+
+	abstract public function getDefinition();
+	abstract public function process(CliCommand $command, $invokes = 1, $params = array(), $isDefaultParam = false);
 }

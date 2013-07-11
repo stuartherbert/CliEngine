@@ -201,7 +201,7 @@ class HelpHelper
         $so->outputLine(null, ' for detailed help on <command>');
     }
 
-    protected function showSwitchSummary($op, $so, $sortedSwitches)
+    public function showSwitchSummary($op, $so, $sortedSwitches)
     {
         if (count($sortedSwitches['shortSwitchesWithoutArgs']) > 0)
         {
@@ -243,7 +243,7 @@ class HelpHelper
         }
     }
 
-    protected function showSwitchLongDetails($op, $so, DefinedSwitch $switch)
+    public function showSwitchLongDetails($op, $so, DefinedSwitch $switch)
     {
         $shortOrLongSwitches = $switch->getHumanReadableSwitchList();
         $append = false;
