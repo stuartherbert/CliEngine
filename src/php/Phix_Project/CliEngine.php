@@ -453,4 +453,18 @@ class CliEngine
 	{
 		return $this->engineSwitchDefinitions;
 	}
+
+	public function hasDefaultCommand()
+	{
+		if ($this->defaultCommand) {
+			return true;
+		}
+
+		return false;
+	}
+
+	public function getDefaultCommand()
+	{
+		return $this->defaultCommand;
+	}
 }

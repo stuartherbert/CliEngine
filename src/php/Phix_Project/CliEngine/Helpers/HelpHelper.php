@@ -76,9 +76,19 @@ class HelpHelper
         $so = $engine->output->stdout;
 
         $so->output($op->highlightStyle, $engine->getAppName());
-        $so->output(null, ' -');
         $this->showSwitchSummary($op, $so, $sortedSwitches);
-        $so->outputLine(null, ' [ command ] [ command-options ]');
+
+        // special case - if a default command has been defined
+        if ($engine->hasDefaultCommand()) {
+            $defaultCommand = $engine->getDefaultCommand();
+
+            $so->outputLine(null, ' [ <command> ] [ command-options ]');
+            $so->output(null, '<command> is optional; if omitted, it defaults to: ');
+            $so->outputLine($op->highlightStyle, $defaultCommand->getName());
+        }
+        else {
+            $so->outputLine(null, ' <command> [ command-options ]');
+        }
     }
 
     public function showLongHelp(CliEngine $engine)
@@ -96,20 +106,36 @@ class HelpHelper
         $so->outputLine(null, $engine->getAppCopyright());
         $so->outputLine(null, $engine->getAppLicense());
         $so->outputBlankLine();
-        $this->showSynopsis($op, $so, $engine->getAppName(), $sortedSwitches);
+        $this->showSynopsis($op, $so, $engine, $sortedSwitches);
         $this->showOptionsList($op, $so, $sortedSwitches);
         $this->showCommandsList($op, $so, $engine->getAppName(), $engine->getCommandsList());
     }
 
-    protected function showSynopsis($op, $so, $appName, $sortedSwitches)
+    protected function showSynopsis($op, $so, $engine, $sortedSwitches)
     {
         $so->outputLine(null, 'SYNOPSIS');
         $so->setIndent(4);
-        $so->output($op->commandStyle, $appName);
 
+        $so->output($op->commandStyle, $engine->getAppName());
         $this->showSwitchSummary($op, $so, $sortedSwitches);
 
-        $so->outputLine(null, ' [ command ] [ command-options ]');
+        // do we have a default command?
+        if (!$engine->hasDefaultCommand()) {
+            $so->outputLine(null, ' <command> [ command-options ]');
+            $so->outputBlankLine();
+            // nothing more to show
+            return;
+        }
+
+        // if we get here, then there's a default command, which makes
+        // things a little more complicated
+
+        $defaultCommand = $engine->getDefaultCommand();
+
+        $so->outputLine(null, ' [ <command> ] [ command-options ]');
+        $so->outputBlankLine();
+        $so->output(null, '<command> is optional; if omitted, it defaults to: ');
+        $so->outputLine($op->highlightStyle, $defaultCommand->getName());
         $so->outputBlankLine();
     }
 
