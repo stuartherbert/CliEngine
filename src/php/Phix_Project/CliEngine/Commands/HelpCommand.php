@@ -78,7 +78,7 @@ class HelpCommand extends CliCommand
 		);
 	}
 
-	public function processCommand(CliEngine $engine, $params = array())
+	public function processCommand(CliEngine $engine, $params = array(), $additionalContext = null)
 	{
 		// use the HelpHelper to do this
 		$hh = new HelpHelper();

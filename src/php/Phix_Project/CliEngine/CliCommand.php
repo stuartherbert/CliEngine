@@ -175,13 +175,17 @@ abstract class CliCommand
 	/**
 	 * process any switches we've been given on the command-line for
 	 * THIS specific command
-	 *
+     *
+     * @param  CliEngine $engine
+     *         the CliEngine object
 	 * @param  array $switches
 	 *         a list of switches to process
+     * @param  mixed $additionalContext
+     *         additional data injected by the caller to CliEngine::main()
 	 *
 	 * @return Phix_Project\CliEngine\CliResult
 	 */
-	public function processSwitches(CliEngine $engine, $switches = array())
+	public function processSwitches(CliEngine $engine, $switches = array(), $additionalContext = null)
 	{
 		// do nothing
 		return new CliResult(CliResult::PROCESS_CONTINUE);
@@ -200,13 +204,15 @@ abstract class CliCommand
 	 *         the tool that is running
 	 * @param  array $params
 	 *         a list of parameters (if any) that have been passed to us
+     * @param  mixed $additionalContext
+     *         additional data injected by the caller to CliEngine::main()
 	 * @return integer
 	 *         the value to return to the process or shell that called
 	 *         this tool
 	 *
 	 * 		   should be '0' for success, and >0 for an error
 	 */
-	abstract public function processCommand(CliEngine $engine, $params = array());
+	abstract public function processCommand(CliEngine $engine, $params = array(), $additionalContext = null);
 
 	// ==================================================================
 	//

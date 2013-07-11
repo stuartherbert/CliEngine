@@ -222,7 +222,7 @@ class CliEngine
 	//
 	// ------------------------------------------------------------------
 
-	public function main($argv)
+	public function main($argv, $additionalContext)
 	{
 		// parse the switches before any command
 		$parsed = $this->parseEngineSwitches($argv);
@@ -248,7 +248,7 @@ class CliEngine
 		// if there are switches, they need processing
 		if ($cmdSwitches !== null)
 		{
-			$continue = $command->processSwitches($this, $parsed->switches);
+			$continue = $command->processSwitches($this, $parsed->switches, $additionalContext);
 			if ($continue->isComplete())
 			{
 				// all done
@@ -257,7 +257,7 @@ class CliEngine
 		}
 
 		// now we are ready to execute the command
-		$result = $command->processCommand($this, $cmdArgs);
+		$result = $command->processCommand($this, $cmdArgs, $additionalContext);
 
 		// all done
 		return $result;
