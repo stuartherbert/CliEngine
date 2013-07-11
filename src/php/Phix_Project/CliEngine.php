@@ -351,11 +351,22 @@ class CliEngine
 			// now, do we have this command?
 			if (!isset($this->allCommands[$commandName]))
 			{
-				die("Unknown command '{$commandName}'");
-			}
+				// we do not - fall back to the default command?
+				if (!isset($this->defaultCommand)) {
+					die("Unknown command '{$commandName}'");
+				}
 
-			// we have our command
-			$command = $this->allCommands[$commandName];
+				// yes - fall back, and treat what's on the command-line
+				// as a parameter
+				$command   = $this->defaultCommand;
+				$argvIndex = 0;
+			}
+			else
+			{
+				// we have an explicit command to use
+				$command   = $this->allCommands[$commandName];
+				$argvIndex = 1;
+			}
 
 			// we need to parse the remaining arguments for additional
 			// switches
@@ -364,7 +375,7 @@ class CliEngine
 			{
 				// parse the remaining command line
 				$parser = new CommandLineParser();
-				$parsed = $parser->parseCommandLine($argv, 1, $cmdSwitchDefs);
+				$parsed = $parser->parseCommandLine($argv, $argvIndex, $cmdSwitchDefs);
 
 				// we have some switches to deal with later
 				$cmdSwitches = $parsed->switches;
@@ -377,9 +388,9 @@ class CliEngine
 				// the command has no switches, with simplifies things
 				// a lot
 				$cmdSwitches = null;
-				if (count($argv) > 1)
+				if (count($argv) > $argvIndex)
 				{
-					$cmdArgs = array_slice($argv, 1);
+					$cmdArgs = array_slice($argv, $argvIndex);
 				}
 				else
 				{
