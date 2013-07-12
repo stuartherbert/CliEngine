@@ -73,12 +73,6 @@ abstract class CliCommand
 
     protected $definedSwitches = null;
     protected $switches = array();
-    protected $options;
-
-    public function __construct()
-    {
-        $this->options = new stdClass;
-    }
 
 	// ==================================================================
 	//
@@ -172,8 +166,17 @@ abstract class CliCommand
 	 */
 	public function getSwitchDefinitions()
 	{
+        if ($this->definedSwitches == null) {
+            $this->definedSwitches = new DefinedSwitches();
+        }
+
         return $this->definedSwitches;
 	}
+
+    public function getSwitchesList()
+    {
+        return $this->switches;
+    }
 
     /**
      * provide the list of switches that this command supports
@@ -192,93 +195,6 @@ abstract class CliCommand
             $this->switches[$definition->name] = $switch;
         }
     }
-
-	// ==================================================================
-	//
-	// API for handling switches that this command supports
-	//
-	// ------------------------------------------------------------------
-
-    protected function parseSwitches($argv)
-    {
-        // parse the switches before any command
-        $parser = new CommandLineParser();
-        $parsed = $parser->parseCommandLine($argv, 1, $this->switchDefinitions);
-
-        // were there any errors?
-        if (count($parsed->errors))
-        {
-            // yes - something went wrong
-            foreach ($parsed->errors as $errorMsg)
-            {
-                $this->output->stderr->outputLine(
-                    $this->output->errorPrefix .
-                    $errorMsg . "\n"
-                );
-            }
-
-            // that could have gone better
-            return null;
-        }
-
-        // if we get here, all is well
-        return $parsed;
-    }
-
-	/**
-	 * process any switches we've been given on the command-line for
-	 * THIS specific command
-     *
-	 * @param  array $parsedSwitches
-	 *         a list of parsed switches to process
-     * @param  mixed $additionalContext
-     *         additional data injected by the caller to CliEngine::main()
-	 *
-	 * @return Phix_Project\CliEngine\CliResult
-	 */
-	public function processSwitches($parsedSwitches = array(), $additionalContext = null)
-	{
-        // execute each switch that has been used on the command line
-        // (or that has a default value), in the order that they were
-        // added to the engine
-        foreach ($this->switches as $defName => $switch)
-        {
-            if (!isset($parsedSwitches[$defName]))
-            {
-                // nothing to see ... move along ... move along
-                continue;
-            }
-
-            // shorthand
-            $parsedSwitch = $parsedSwitches[$defName];
-
-            // tell the switch to do its thing
-            $continue = $switch->process(
-                $this,
-                $parsedSwitch->invokes,
-                $parsedSwitch->values,
-                $parsedSwitch->isUsingDefaultValue
-            );
-
-            // did we get a valid CliResult object back?
-            if (! $continue instanceof CliResult)
-            {
-                var_dump($continue);
-                // programming error
-                die("Switch " . get_class($switch) . "::process() did not return a CliResult object\n");
-            }
-
-            // does this switch want everything to stop?
-            if ($continue->isComplete())
-            {
-                // all done
-                return $continue;
-            }
-        }
-
-        // if we get here, all is well
-        return new CliResult(CliResult::PROCESS_CONTINUE);
-	}
 
 	// ==================================================================
 	//

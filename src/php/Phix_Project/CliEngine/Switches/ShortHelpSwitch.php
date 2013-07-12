@@ -73,6 +73,9 @@ class ShortHelpSwitch extends CliEngineSwitch
 
 		// we have no long switches
 
+		// we are actually a command, pretending to be a switch
+		$def->setSwitchActsAsCommand();
+
 		// all done
 		return $def;
 	}
@@ -93,6 +96,6 @@ class ShortHelpSwitch extends CliEngineSwitch
 		}
 
 		// tell the engine that it is done
-		return new CliResult(0);
+		return new CliResult(CliResult::PROCESS_COMPLETE);
 	}
 }

@@ -72,6 +72,9 @@ class VersionSwitch extends CliEngineSwitch
 		// what are the long switches?
 		$def->addLongSwitch('version');
 
+		// we are actually a command, pretending to be a switch
+		$def->setSwitchActsAsCommand();
+
 		// all done
 		return $def;
 	}
@@ -85,6 +88,6 @@ class VersionSwitch extends CliEngineSwitch
 		);
 
 		// tell the engine that it is done
-		return new CliResult(0);
+		return new CliResult(CliResult::PROCESS_COMPLETE);
 	}
 }

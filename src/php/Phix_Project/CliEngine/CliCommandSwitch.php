@@ -44,6 +44,7 @@
 
 namespace Phix_Project\CliEngine;
 
+use Phix_Project\CliEngine;
 use Phix_Project\CommandLineLib4\DefinedSwitch;
 
 /**
@@ -75,5 +76,5 @@ abstract class CliCommandSwitch
 	}
 
 	abstract public function getDefinition();
-	abstract public function process(CliCommand $command, $invokes = 1, $params = array(), $isDefaultParam = false);
+	abstract public function process(CliEngine $command, $invokes = 1, $params = array(), $isDefaultParam = false);
 }

@@ -73,6 +73,9 @@ class LongHelpSwitch extends CliEngineSwitch
 		$def->addLongSwitch('help');
 		$def->addLongSwitch('?');
 
+		// we are actually a command, pretending to be a switch
+		$def->setSwitchActsAsCommand();
+
 		// all done
 		return $def;
 	}
@@ -84,7 +87,7 @@ class LongHelpSwitch extends CliEngineSwitch
 		$hh->showLongHelp($engine);
 
 		// tell the engine that we've finished
-		$return = new CliResult(0);
+		$return = new CliResult(CliResult::PROCESS_COMPLETE);
 		return $return;
 	}
 }
