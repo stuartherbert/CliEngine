@@ -44,7 +44,7 @@
 
 namespace Phix_Project\CliEngine;
 
-use ReflectionClass;
+use ReflectionObject;
 use stdClass;
 
 use Phix_Project\CliEngine;
@@ -388,6 +388,7 @@ abstract class CliCommand
 
     protected function getSourceFilename()
     {
-    	return __FILE__;
+        $refObj = new ReflectionObject($this);
+    	return $refObj->getFileName();
     }
 }
