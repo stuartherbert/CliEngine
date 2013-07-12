@@ -45,7 +45,7 @@
 namespace Phix_Project\CliEngine\Switches;
 
 use Phix_Project\CliEngine;
-use Phix_Project\CliEngine\CliEngineSwitch;
+use Phix_Project\CliEngine\CliSwitch;
 use Phix_Project\CliEngine\CliResult;
 
 /**
@@ -59,7 +59,7 @@ use Phix_Project\CliEngine\CliResult;
  * @link        http://www.phix-project.org
  * @version     @@PACKAGE_VERSION@@
  */
-class VerboseShortSwitch extends CliEngineSwitch
+class VerboseShortSwitch extends CliSwitch
 {
 	public function __construct($engineOptions, $min, $max)
 	{
@@ -69,21 +69,16 @@ class VerboseShortSwitch extends CliEngineSwitch
 
 		// set the default for our 'verbosity' level
 		$engineOptions->verbosity = $min;
-	}
 
-	public function getDefinition()
-	{
 		// define our name, and our description
-		$def = $this->newDefinition('shortVerbose', 'increase amount of information shown');
+		$this->setName('shortVerbose');
+		$this->setShortDescription('increase amount of information shown');
 
 		// what are the short switches?
-		$def->addShortSwitch('V');
+		$this->addShortSwitch('V');
 
 		// this switch is repeatable
-		$def->setSwitchIsRepeatable();
-
-		// all done
-		return $def;
+		$this->setSwitchIsRepeatable();
 	}
 
 	public function process(CliEngine $engine, $invokes = 1, $params = array(), $isDefaultParam = false)

@@ -45,7 +45,7 @@
 namespace Phix_Project\CliEngine\Switches;
 
 use Phix_Project\CliEngine;
-use Phix_Project\CliEngine\CliEngineSwitch;
+use Phix_Project\CliEngine\CliSwitch;
 use Phix_Project\CliEngine\CliResult;
 use Phix_Project\CliEngine\Helpers\HelpHelper;
 
@@ -60,24 +60,22 @@ use Phix_Project\CliEngine\Helpers\HelpHelper;
  * @link        http://www.phix-project.org
  * @version     @@PACKAGE_VERSION@@
  */
-class ShortHelpSwitch extends CliEngineSwitch
+class ShortHelpSwitch extends CliSwitch
 {
-	public function getDefinition()
+	public function __construct()
 	{
 		// define our name, and our description
-		$def = $this->newDefinition('shortHelp', 'display summary of supported switches');
+		$this->setName('shortHelp');
+		$this->setShortDescription('display summary of supported switches');
 
 		// what are the short switches?
-		$def->addShortSwitch('h');
-		$def->addShortSwitch('?');
+		$this->addShortSwitch('h');
+		$this->addShortSwitch('?');
 
 		// we have no long switches
 
 		// we are actually a command, pretending to be a switch
-		$def->setSwitchActsAsCommand();
-
-		// all done
-		return $def;
+		$this->setSwitchActsAsCommand();
 	}
 
 	public function process(CliEngine $engine, $invokes = 1, $params = array(), $isDefaultParam = false)

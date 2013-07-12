@@ -61,23 +61,7 @@ use Phix_Project\CommandLineLib4\DefinedSwitch;
  * @link        http://www.phix-project.org
  * @version     @@PACKAGE_VERSION@@
  */
-abstract class CliEngineSwitch
+abstract class CliSwitch extends DefinedSwitch
 {
-	/**
-	 * create a new DefinedSwitch, for further definition
-	 *
-	 * @param  string $name
-	 *         the unique name of this switch
-	 * @param  string $shortDesc
-	 *         a short summary of what this switch does
-	 * @return Phix_Project\CommandLineSwitch4\DefinedSwitch
-	 */
-	protected function newDefinition($name, $shortDesc)
-	{
-		$switch = new DefinedSwitch($name, $shortDesc);
-		return $switch;
-	}
-
-	abstract public function getDefinition();
 	abstract public function process(CliEngine $engine, $invokes = 1, $params = array(), $isDefaultParam = false);
 }

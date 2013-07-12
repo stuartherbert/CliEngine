@@ -45,7 +45,7 @@
 namespace Phix_Project\CliEngine\Switches;
 
 use Phix_Project\CliEngine;
-use Phix_Project\CliEngine\CliEngineSwitch;
+use Phix_Project\CliEngine\CliSwitch;
 use Phix_Project\CliEngine\CliResult;
 
 /**
@@ -59,24 +59,22 @@ use Phix_Project\CliEngine\CliResult;
  * @link        http://www.phix-project.org
  * @version     @@PACKAGE_VERSION@@
  */
-class VersionSwitch extends CliEngineSwitch
+class VersionSwitch extends CliSwitch
 {
-	public function getDefinition()
+	public function __construct()
 	{
 		// define our name, and our description
-		$def = $this->newDefinition('version', 'display app version number');
+		$this->setName('version');
+		$this->setShortDescription('display app version number');
 
 		// what are the short switches?
-		$def->addShortSwitch('v');
+		$this->addShortSwitch('v');
 
 		// what are the long switches?
-		$def->addLongSwitch('version');
+		$this->addLongSwitch('version');
 
 		// we are actually a command, pretending to be a switch
-		$def->setSwitchActsAsCommand();
-
-		// all done
-		return $def;
+		$this->setSwitchActsAsCommand();
 	}
 
 	public function process(CliEngine $engine, $invokes = 1, $params = array(), $isDefaultParam = false)

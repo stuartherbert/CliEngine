@@ -45,7 +45,7 @@
 namespace Phix_Project\CliEngine\Switches;
 
 use Phix_Project\CliEngine;
-use Phix_Project\CliEngine\CliEngineSwitch;
+use Phix_Project\CliEngine\CliSwitch;
 use Phix_Project\CliEngine\CliResult;
 
 use Phix_Project\ValidationLib4\Type_MustBeIntegerInRange;
@@ -61,7 +61,7 @@ use Phix_Project\ValidationLib4\Type_MustBeIntegerInRange;
  * @link        http://www.phix-project.org
  * @version     @@PACKAGE_VERSION@@
  */
-class VerboseLongSwitch extends CliEngineSwitch
+class VerboseLongSwitch extends CliSwitch
 {
 	protected $min;
 	protected $max;
@@ -74,25 +74,20 @@ class VerboseLongSwitch extends CliEngineSwitch
 
 		// set the default for our 'verbosity' level
 		$engineOptions->verbosity = $min;
-	}
 
-	public function getDefinition()
-	{
 		// define our name, and our description
-		$def = $this->newDefinition('longVerbose', 'increase amount of information shown');
+		$this->setName('longVerbose');
+		$this->setShortDescription('increase amount of information shown');
 
 		// there are no short switches
 
 		// what are the long switches?
-		$def->addLongSwitch('verbose');
+		$this->addLongSwitch('verbose');
 
 		// this switch has an optional parameter
-		$def->setOptionalArg('<level>', 'how verbose to be');
-		$def->setArgHasDefaultValueOf($this->min);
-		$def->setArgValidator(new Type_MustBeIntegerInRange($this->min, $this->max));
-
-		// all done
-		return $def;
+		$this->setOptionalArg('<level>', 'how verbose to be');
+		$this->setArgHasDefaultValueOf($this->min);
+		$this->setArgValidator(new Type_MustBeIntegerInRange($this->min, $this->max));
 	}
 
 	public function process(CliEngine $engine, $invokes = 1, $params = array(), $isDefaultParam = false)

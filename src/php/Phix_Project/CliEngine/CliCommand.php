@@ -190,9 +190,8 @@ abstract class CliCommand
         }
 
         foreach ($switches as $switch) {
-            $definition = $switch->getDefinition();
-            $this->definedSwitches->addSwitch($switch->getDefinition());
-            $this->switches[$definition->name] = $switch;
+            $this->definedSwitches->addSwitch($switch);
+            $this->switches[$switch->name] = $switch;
         }
     }
 

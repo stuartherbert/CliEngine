@@ -47,7 +47,7 @@ namespace Phix_Project;
 use stdClass;
 
 use Phix_Project\CliEngine\CliCommand;
-use Phix_Project\CliEngine\CliEngineSwitch;
+use Phix_Project\CliEngine\CliSwitch;
 use Phix_Project\CliEngine\CliResult;
 use Phix_Project\CliEngine\OutputWriter;
 use Phix_Project\CliEngine\Helpers\HelpHelper;
@@ -128,14 +128,6 @@ class CliEngine
 	 */
 	protected $engineSwitches = array();
 
-	/**
-	 * A list of all of the parser definitions for the switches that we
-	 * accept
-	 *
-	 * @var DefinedSwitches
-	 */
-	protected $engineSwitchDefinitions;
-
 	const PROCESS_COMPLETE = 1;
 	const PROCESS_CONTINUE = 2;
 
@@ -170,11 +162,9 @@ class CliEngine
 	//
 	// ------------------------------------------------------------------
 
-	public function addEngineSwitch(CliEngineSwitch $switch)
+	public function addEngineSwitch(CliSwitch $switch)
 	{
-		$definition = $switch->getDefinition();
-		$this->engineSwitchDefinitions->addSwitch($definition);
-		$this->engineSwitches[$definition->name] = $switch;
+		$this->engineSwitches[$switch->name] = $switch;
 	}
 
 	public function addCommand(CliCommand $command)
@@ -247,20 +237,21 @@ class CliEngine
 		// if the command is explicit, then the two sets of switches
 		// cannot appear together on the command line
 
+
 		// special case - implicit command
 		if ($commandArgvIndex === null) {
 			// implicit command
 			//
 			// expect both engine and command switches together
-			list($definedSwitches, $switchProcessors) = $this->buildSwitchListFor($command);
-			$parsed = $this->parseSwitches($argv, 1, $definedSwitches);
+			$mergedSwitches = $this->buildSwitchListFor($command);
+			$parsed = $this->parseSwitches($argv, 1, $mergedSwitches);
 			if ($parsed === null) {
 				// an error occurred
 				return 1;
 			}
 
 			// now process the switches that we have
-			$continue = $this->processSwitches($switchProcessors, $parsed->switches);
+			$continue = $this->processSwitches($mergedSwitches, $parsed->switches);
 			if ($continue->isComplete())
 			{
 				return $continue->returnCode;
@@ -270,29 +261,29 @@ class CliEngine
 			// explicit command
 			//
 			// parse the engine switches first
-			$parsed = $this->parseSwitches(array_slice($argv, 0, $commandArgvIndex - 1), 1, $this->engineSwitchDefinitions);
+			$engineSwitches = $this->buildSwitchListFor(null);
+			$parsed = $this->parseSwitches(array_slice($argv, 0, $commandArgvIndex - 1), 1, $engineSwitches);
 			if ($parsed === null) {
 				// an error occurred
 				return 1;
 			}
 			// now process the switches that we have
-			$continue = $this->processSwitches($this->engineSwitches, $parsed->switches);
+			$continue = $this->processSwitches($engineSwitches, $parsed->switches);
 			if ($continue->isComplete())
 			{
 				return $continue->returnCode;
 			}
 
 			// now, parse after the command
-			$commandDefinedSwitches = $command->getSwitchDefinitions();
-			$parsed = $this->parseSwitches(array_slice($argv, $commandArgIndex), 1, $commandDefinedSwitches);
+			$commandSwitches = $command->getSwitchDefinitions();
+			$parsed = $this->parseSwitches(array_slice($argv, $commandArgvIndex), 1, $commandSwitches);
 			if ($parsed === null) {
 				// an error occurred
 				return 1;
 			}
 
 			// now process the switches that we have
-			$commandSwitchProcessors = $command->getSwitches();
-			$continue = $this->processSwitches($commandSwitchProcessors, $parsed->switches);
+			$continue = $this->processSwitches($commandSwitches, $parsed->switches);
 			if ($continue->isComplete())
 			{
 				return $continue->returnCode;
@@ -350,25 +341,26 @@ class CliEngine
 	protected function buildSwitchListFor($command)
 	{
 		$definedSwitches  = new DefinedSwitches();
-		$switchProcessors = array();
 
 		// add in the engine switches
-		foreach ($this->engineSwitches as $switchName => $switchProcessor) {
-			$switch = $switchProcessor->getDefinition();
+		foreach ($this->engineSwitches as $switchName => $switch) {
 			$definedSwitches->addSwitch($switch);
-			$switchProcessors[$switch->name] = $switchProcessor;
+		}
+
+		// is there a command?
+		if ($command === null) {
+			// no
+			return $definedSwitches;
 		}
 
 		// now, add in the switches from the command
-		$switches = $command->getSwitchesList();
-		foreach ($switches as $switchName => $switchProcessor) {
-			$switch = $switchProcessor->getDefinition();
+		$switches = $command->getSwitchDefinitions();
+		foreach ($switches->getSwitches() as $switchName => $switch) {
 			$definedSwitches->addSwitch($switch);
-			$switchProcessors[$switch->name] = $switchProcessor;
 		}
 
 		// all done
-		return array($definedSwitches, $switchProcessors);
+		return $definedSwitches;
 	}
 
 	protected function parseSwitches($argv, $argIndex, DefinedSwitches $definedSwitches)
@@ -399,12 +391,12 @@ class CliEngine
 		return $parsed;
 	}
 
-	protected function processSwitches($definedSwitches, $parsedSwitches)
+	protected function processSwitches(DefinedSwitches $definedSwitches, $parsedSwitches)
 	{
 		// execute each switch that has been used on the command line
 		// (or that has a default value), in the order that they were
 		// added to the engine
-		foreach ($definedSwitches as $defName => $switch)
+		foreach ($definedSwitches->getSwitches() as $defName => $switch)
 		{
 			if (!isset($parsedSwitches[$defName]))
 			{
@@ -491,7 +483,11 @@ class CliEngine
 
 	public function getEngineSwitchDefinitions()
 	{
-		return $this->engineSwitchDefinitions;
+		$return = new DefinedSwitches();
+		foreach ($this->engineSwitches as $name => $switch) {
+			$return->addSwitch($switch);
+		}
+		return $return;
 	}
 
 	public function hasDefaultCommand()
