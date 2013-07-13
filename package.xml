@@ -7,7 +7,7 @@
   <channel>${project.channel}</channel>
   <summary>Generic CLI engine</summary>
   <description>
-    phix-cli is a generic engine that makes it very quick and easy to create command-line tools in PHP
+    CliEngine is a generic engine that makes it very quick and easy to create command-line tools in PHP
   </description>
   <lead>
     <name>Stuart Herbert</name>
@@ -43,7 +43,25 @@ ${contents}
         <min>1.9.4</min>
       </pearinstaller>
       <package>
-        <name>Autoloader4/name>
+        <name>Autoloader4</name>
+        <channel>pear.phix-project.org</channel>
+        <min>4.0.0</min>
+        <max>4.999.9999</max>
+      </package>
+      <package>
+        <name>CommandLineLib4</name>
+        <channel>pear.phix-project.org</channel>
+        <min>4.0.0</min>
+        <max>4.999.9999</max>
+      </package>
+      <package>
+        <name>ConsoleDisplayLib4</name>
+        <channel>pear.phix-project.org</channel>
+        <min>4.0.0</min>
+        <max>4.999.9999</max>
+      </package>
+      <package>
+        <name>ValidationLib4</name>
         <channel>pear.phix-project.org</channel>
         <min>4.0.0</min>
         <max>4.999.9999</max>
