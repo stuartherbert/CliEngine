@@ -1,0 +1,108 @@
+#!/usr/bin/env php
+<?php
+
+use Phix_Project\Autoloader4\PSR0_Autoloader;
+use Phix_Project\Autoloader4\Autoloader_Path;
+
+use Phix_Project\CliEngine;
+use Phix_Project\CliEngine\Switches\LongHelpSwitch;
+use Phix_Project\CliEngine\Switches\ShortHelpSwitch;
+use Phix_Project\CliEngine\Switches\VerboseShortSwitch;
+use Phix_Project\CliEngine\Switches\VerboseLongSwitch;
+use Phix_Project\CliEngine\Switches\VersionSwitch;
+use Phix_Project\CliEngine\Commands\HelpCommand;
+
+// ==================================================================
+//
+// Handle the autoloading
+//
+// ------------------------------------------------------------------
+
+// has Composer provided an autoloader?
+if (file_exists(getcwd() . '/vendor/autoload.php'))
+{
+        // we're running out of a composer vendor folder
+        require_once(getcwd() . '/vendor/autoload.php');
+        define('PHIX_OWN_AUTOLOADER', false);
+        define('PHIX_COMPOSER_INSTALL', true);
+}
+
+// we need our own autoloader too
+if (file_exists(getcwd() . '/vendor/php/Phix_Project/Autoloader4/PSR0/Autoloader.php'))
+{
+        // we're running out a phix/PEAR vendor folder
+        require_once(getcwd() . '/vendor/php/Phix_Project/Autoloader4/PSR0/Autoloader.php');
+        define('PHIX_OWN_AUTOLOADER', true);
+        define('PHIX_PEAR_VENDOR_INSTALL', true);
+}
+else if ('@' . '@PHP_DIR@@' !== '@@PHP_DIR@@')
+{
+        // we've been installed globally by PEAR
+        require_once("@@PHP_DIR@@/Phix_Project/Autoloader4/PSR0/Autoloader.php");
+        define('PHIX_OWN_AUTOLOADER', true);
+        define('PHIX_PEAR_GLOBAL_INSTALL', true);
+}
+else if (!defined('PHIX_OWN_AUTOLOADER') || !class_exists('Phix_Project\Autoloader4\PSR0_Autoloader'))
+{
+        die("Cannot find a suitable autoloader ... giving up :(\n");
+}
+
+// if we're using our own autoloader, there is work to be done
+if (PHIX_OWN_AUTOLOADER)
+{
+        PSR0_Autoloader::startAutoloading();
+}
+
+// a list of places to look for phix commands
+$searchFolders = array
+(
+        getcwd() . DIRECTORY_SEPARATOR . 'vendor' . DIRECTORY_SEPARATOR . 'php',
+        getcwd() . DIRECTORY_SEPARATOR . 'src' . DIRECTORY_SEPARATOR . 'php',
+        "@@PHP_DIR@@",
+);
+
+foreach ($searchFolders as $searchFolder)
+{
+        if (is_dir($searchFolder))
+        {
+                Autoloader_Path::searchFirst($searchFolder);
+        }
+}
+
+// ==================================================================
+//
+// Setup our commands
+//
+// ------------------------------------------------------------------
+
+// create the engine
+$engine = new CliEngine();
+
+// set the main metadata
+$engine->setAppName('cliengine-example');
+$engine->setAppVersion('2.0.0');
+$engine->setAppUrl('https://github.com/stuartherbert/CliEngine/');
+$engine->setAppCopyright('Copyright (c) 2013-present Stuart Herbert. All rights reserved.');
+$engine->setAppLicense('Released under the BSD 3-Clause license');
+
+// add the switches that come before any of the commands
+// if we have any
+//
+// add switches in the order of presidence
+$engine->addEngineSwitch(new VersionSwitch);
+$engine->addEngineSwitch(new LongHelpSwitch);
+$engine->addEngineSwitch(new ShortHelpSwitch);
+$engine->addEngineSwitch(new VerboseShortSwitch($engine->options, 0, 3));
+$engine->addEngineSwitch(new VerboseLongSwitch($engine->options, 0, 3));
+
+// what is our default command?
+// this is normally some sort of help command
+$engine->setDefaultCommand(new HelpCommand);
+
+// add any additional commands
+// note - we do not have to add the default command a 2nd time
+// note - if we add no additional commands, the default command is implied
+//        and the user does not have to type it on the command line
+
+// all set - let's go
+return $engine->main($argv);
