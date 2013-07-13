@@ -481,13 +481,9 @@ class CliEngine
 		return $this->allCommands;
 	}
 
-	public function getEngineSwitchDefinitions()
+	public function getSwitchDefinitions()
 	{
-		$return = new DefinedSwitches();
-		foreach ($this->engineSwitches as $name => $switch) {
-			$return->addSwitch($switch);
-		}
-		return $return;
+		return $this->buildSwitchListFor(null);
 	}
 
 	public function hasDefaultCommand()

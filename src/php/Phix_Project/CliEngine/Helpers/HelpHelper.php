@@ -308,14 +308,21 @@ class HelpHelper
             $so->outputLine(null, $switch->longdesc);
         }
 
-        // output the default argument, if it is set
-        if ($switch->testHasArgument() && isset($switch->arg->defaultValue))
+        // output details about any argument
+        if ($switch->testHasArgument())
         {
             $so->outputBlankLine();
-            $so->output(null, 'The default value for ');
-            $so->output($op->argStyle, $switch->arg->name);
-            $so->output(null, ' is: ');
-            $so->outputLine($op->exampleStyle, $switch->arg->defaultValue);
+            $so->outputLine($op->argStyle, $switch->arg->name);
+            $so->addIndent(4);
+            $so->output(null, $switch->arg->desc);
+            // output the default argument, if it is set
+            if (isset($switch->arg->defaultValue))
+            {
+                $so->output(null, ' (default: ');
+                $so->output($op->exampleStyle, $switch->arg->defaultValue);
+                $so->outputLine(null, ')');
+            }
+            $so->addIndent(-4);
         }
 
         $so->addIndent(-4);

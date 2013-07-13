@@ -227,100 +227,166 @@ abstract class CliCommand
     public function outputHelp(CliEngine $engine)
     {
         // shorthand
-        $op = $engine->output;
-        $so = $engine->output->stdout;
-    	$hh = new HelpHelper();
-
-        $options = $this->getSwitchDefinitions();
-        $args    = $this->getArgsList();
-
-        $sortedSwitches = null;
-        if ($options !== null)
+        $s = new stdClass;
+        $s->op = $engine->output;
+        $s->so = $engine->output->stdout;
+    	$s->hh = new HelpHelper();
+        $s->appName = $engine->getAppName();
+        $s->myName = $this->getName();
+        $s->isDefaultCommand = false;
+        if ($engine->getDefaultCommand() === $this)
         {
-            $sortedSwitches = $options->getSwitchesInDisplayOrder();
+            $s->isDefaultCommand = true;
         }
 
-        $this->showName($op, $so, $hh, $engine->getAppName());
-        $this->showSynopsis($op, $so, $hh, $engine->getAppName(), $sortedSwitches, $args);
-        $this->showOptions($op, $so, $hh, $sortedSwitches, $args);
-        $this->showLongDescription($op, $so, $hh);
-        $this->showImplementationDetails($op, $so, $hh);
-    }
-
-    protected function showName($op, $so, $hh, $appName)
-    {
-        $so->setIndent(0);
-        $so->outputLine(null, 'NAME');
-        $so->setIndent(4);
-        $so->output($op->commandStyle, $appName . ' ' . $this->getName());
-        $so->outputLine(null, ' - ' . $this->getShortDescription());
-        $so->addIndent(-4);
-        $so->outputBlankLine();
-    }
-
-    protected function showSynopsis($op, $so, $hh, $appName, $sortedSwitches, $args)
-    {
-        $so->setIndent(0);
-        $so->outputLine(null, 'SYNOPSIS');
-        $so->setIndent(4);
-
-        $so->output($op->commandStyle, $appName . ' ' . $this->getName());
-
-        if ($sortedSwitches !== null)
+        $engineSwitchDefinitions = $engine->getSwitchDefinitions();
+        $engineSortedSwitches = null;
+        if ($engineSwitchDefinitions !== null)
         {
-            $this->showSwitchSummary($op, $so, $hh, $sortedSwitches);
+            $s->engineSortedSwitches = $engineSwitchDefinitions->getSwitchesInDisplayOrder(array('actsAsCommand' => false));
         }
 
-        if (count($args) > 0)
+        $mySwitchDefintions = $this->getSwitchDefinitions();
+        $mySortedSwitches = null;
+        if ($mySwitchDefintions !== null)
         {
-            $this->showArgsSummary($op, $so, $hh, $args);
+            $s->mySortedSwitches = $mySwitchDefintions->getSwitchesInDisplayOrder();
         }
 
-        $so->outputBlankLine();
+        $s->myArgs = $this->getArgsList();
+
+        // this is the order we display things in
+        $this->showName($s);
+        $this->showSynopsis($s);
+        $this->showLongDescription($s);
+        $this->showOptions($s);
+        $this->showImplementationDetails($s);
     }
 
-    protected function showArgsSummary($op, $so, $hh, $args)
+    protected function showName($s)
     {
-        foreach ($args as $arg => $argDesc)
+        $s->so->setIndent(0);
+        $s->so->outputLine('NAME');
+        $s->so->setIndent(4);
+        $s->so->output($s->op->commandStyle, $s->appName . ' ' . $s->myName);
+        $s->so->outputLine(' - ' . $this->getShortDescription());
+        $s->so->addIndent(-4);
+        $s->so->outputBlankLine();
+    }
+
+    protected function showSynopsis($s)
+    {
+        $s->so->setIndent(0);
+        $s->so->outputLine('SYNOPSIS');
+        $s->so->setIndent(4);
+
+        $s->so->output($s->op->commandStyle, $s->appName);
+        if ($s->engineSortedSwitches !== null) {
+            $this->showSwitchSummary($s, $s->engineSortedSwitches);
+            $s->so->output(' ');
+        }
+
+        $s->so->output($s->op->commandStyle, $s->myName);
+
+        if ($s->mySortedSwitches !== null)
         {
-            $so->output($op->argStyle, ' ' . $arg);
+            $this->showSwitchSummary($s, $s->mySortedSwitches);
+        }
+
+        if (count($s->myArgs) > 0)
+        {
+            $this->showArgsSummary($s);
+        }
+
+        $s->so->outputBlankLine();
+
+        // is this the default command for the engine?
+        if (!$s->isDefaultCommand)
+        {
+            // no, so we're done here
+            return;
+        }
+
+        // if we get here, then this is the default command for the app,
+        // and we need to tell the user about this
+        $s->so->output("This is the default command for ");
+        $s->so->output($s->op->commandStyle, $s->appName);
+        $s->so->output("; you can omit ");
+        $s->so->output($s->op->commandStyle, $s->myName);
+        $s->so->outputLine(" from the command line like this:");
+        $s->so->outputBlankLine();
+
+        $s->so->output($s->op->commandStyle, $s->appName);
+        if ($s->engineSortedSwitches !== null) {
+            $this->showSwitchSummary($s, $s->engineSortedSwitches);
+        }
+
+        if ($s->mySortedSwitches !== null)
+        {
+            $this->showSwitchSummary($s, $s->mySortedSwitches);
+        }
+
+        if (count($s->myArgs) > 0)
+        {
+            $this->showArgsSummary($s);
+        }
+
+        $s->so->outputBlankLine();
+    }
+
+    protected function showArgsSummary($s)
+    {
+        foreach ($s->myArgs as $arg => $argDesc)
+        {
+            $s->so->output($s->op->argStyle, ' ' . $arg);
         }
     }
 
-    protected function showSwitchSummary($op, $so, $hh, $sortedSwitches)
+    protected function showSwitchSummary($s, $sortedSwitches)
     {
-    	$hh->showSwitchSummary($op, $so, $sortedSwitches);
+    	$s->hh->showSwitchSummary($s->op, $s->so, $sortedSwitches);
     }
 
-    protected function showOptions($op, $so, $hh, $sortedSwitches, $args)
+    protected function showOptions($s)
     {
         // do we have any options to show?
-        if (empty($sortedSwitches['allSwitches']) && empty($args))
+        if (empty($s->engineSortedSwitches) && empty($s->mySortedSwitches['allSwitches']) && empty($s->myArgs))
         {
             // no we do not
             return;
         }
 
-        $so = $op->stdout;
+        $s->so->setIndent(0);
+        $s->so->outputLine('OPTIONS');
+        $s->so->addIndent(4);
 
-        $so->setIndent(0);
-        $so->outputLine(null, 'OPTIONS');
-        $so->addIndent(4);
-
-        if (count($sortedSwitches['allSwitches']) > 0)
+        if (count($s->mySortedSwitches['allSwitches']) > 0)
         {
-            $this->showSwitchDetails($op, $so, $hh, $sortedSwitches);
+            $this->showSwitchDetails($s, $s->mySortedSwitches);
         }
 
-        if (count($args) > 0)
+        if (count($s->myArgs) > 0)
         {
-            $this->showArgsDetails($op, $so, $hh, $args);
+            $this->showArgsDetails($s);
         }
 
-        $so->addIndent(-4);
+        if (count($s->engineSortedSwitches['allSwitches']) > 0)
+        {
+            $s->so->setIndent(0);
+            $s->so->outputLine('GLOBAL OPTIONS');
+            $s->so->addIndent(4);
+            $s->so->output("All ");
+            $s->so->output($s->op->commandStyle, $s->appName);
+            $s->so->outputLine(" commands also support the following options. They are normally placed in front of the command on the command line.");
+            $s->so->outputBlankLine();
+            $this->showSwitchDetails($s, $s->engineSortedSwitches);
+        }
+
+
+        $s->so->addIndent(-4);
     }
 
-    protected function showSwitchDetails($op, $so, $hh, $sortedSwitches)
+    protected function showSwitchDetails($s, $sortedSwitches)
     {
         // keep track of the switches we have seen, to avoid
         // any duplication of output
@@ -334,56 +400,58 @@ abstract class CliCommand
                 // yes, skip it
                 continue;
             }
-            $seenSwitches[$switch->name] = $switch;
 
             // we have not seen this switch before
-            $hh->showSwitchLongDetails($op, $so, $switch);
+            $seenSwitches[$switch->name] = $switch;
+
+            // output the details about this switch
+            $s->hh->showSwitchLongDetails($s->op, $s->so, $switch);
         }
     }
 
-    protected function showArgsDetails($op, $so, $hh, $args)
+    protected function showArgsDetails($s)
     {
-        foreach ($args as $argName => $argDesc)
+        foreach ($s->myArgs as $argName => $argDesc)
         {
-            $this->showArgLongDetails($op, $so, $hh, $argName, $argDesc);
+            $this->showArgLongDetails($s, $argName, $argDesc);
         }
     }
 
-    protected function showArgLongDetails($op, $so, $hh, $argName, $argDesc)
+    protected function showArgLongDetails($s, $argName, $argDesc)
     {
-        $so->outputLine($op->argStyle, $argName);
-        $so->addIndent(4);
-        $so->outputLine(null, $argDesc);
-        $so->addIndent(-4);
-        $so->outputBlankLine();
+        $s->so->outputLine($s->op->argStyle, $argName);
+        $s->so->addIndent(4);
+        $s->so->outputLine($argDesc);
+        $s->so->addIndent(-4);
+        $s->so->outputBlankLine();
     }
 
-    protected function showLongDescription($op, $so, $hh)
+    protected function showLongDescription($s)
     {
-        $so->setIndent(0);
-        $so->outputLine(null, 'DESCRIPTION');
-        $so->setIndent(4);
-        $so->outputLine($this->getLongDescription());
+        $s->so->setIndent(0);
+        $s->so->outputLine('DESCRIPTION');
+        $s->so->setIndent(4);
+        $s->so->outputLine($this->getLongDescription());
     }
 
-    protected function showImplementationDetails($op, $so, $hh)
+    protected function showImplementationDetails($s)
     {
-        $so->setIndent(0);
-        $so->outputLine(null, 'IMPLEMENTATION');
-        $so->addIndent(4);
-        $so->outputLine(null, 'This command is implemented in the PHP class:');
-        $so->outputBlankLine();
-        $so->output($op->commandStyle, '* ');
-        $so->addIndent(2);
-        $so->outputLine(null, get_class($this));
-        $so->addIndent(-2);
-        $so->outputBlankLine();
-        $so->outputLine(null, 'which is defined in the file:');
-        $so->outputBlankLine();
-        $so->output($op->commandStyle, '* ');
-        $so->addIndent(2);
-        $so->outputLine(null, $this->getSourceFilename());
-        $so->addIndent(-6);
+        $s->so->setIndent(0);
+        $s->so->outputLine('IMPLEMENTATION');
+        $s->so->addIndent(4);
+        $s->so->outputLine('This command is implemented in the PHP class:');
+        $s->so->outputBlankLine();
+        $s->so->output($s->op->commandStyle, '* ');
+        $s->so->addIndent(2);
+        $s->so->outputLine(get_class($this));
+        $s->so->addIndent(-2);
+        $s->so->outputBlankLine();
+        $s->so->outputLine('which is defined in the file:');
+        $s->so->outputBlankLine();
+        $s->so->output($s->op->commandStyle, '* ');
+        $s->so->addIndent(2);
+        $s->so->outputLine(null, $this->getSourceFilename());
+        $s->so->addIndent(-6);
     }
 
     protected function getSourceFilename()
