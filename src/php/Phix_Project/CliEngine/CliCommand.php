@@ -258,8 +258,8 @@ abstract class CliCommand
         // this is the order we display things in
         $this->showName($s);
         $this->showSynopsis($s);
-        $this->showOptions($s);
         $this->showLongDescription($s);
+        $this->showOptions($s);
         $this->showImplementationDetails($s);
     }
 
