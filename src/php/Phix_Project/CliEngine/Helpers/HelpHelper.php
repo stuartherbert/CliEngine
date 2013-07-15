@@ -69,7 +69,7 @@ class HelpHelper
     public function showShortHelp(CliEngine $engine)
     {
         // get the list of switches in display order
-        $sortedSwitches = $engine->getEngineSwitchDefinitions()->getSwitchesInDisplayOrder();
+        $sortedSwitches = $engine->getSwitchDefinitions()->getSwitchesInDisplayOrder();
 
         // shorthand
         $op = $engine->output;
@@ -94,7 +94,7 @@ class HelpHelper
     public function showLongHelp(CliEngine $engine)
     {
         // get the list of switches in display order
-        $sortedSwitches = $engine->getEngineSwitchDefinitions()->getSwitchesInDisplayOrder();
+        $sortedSwitches = $engine->getSwitchDefinitions()->getSwitchesInDisplayOrder();
 
         // shorthand
         $op = $engine->output;
