@@ -195,6 +195,23 @@ abstract class CliCommand
         }
     }
 
+    /**
+     * add to the existing list of switches that this command supports
+     *
+     * @param array(CliCommandSwitch) $switches
+     */
+    public function addSwitches($switches)
+    {
+        if (!$this->definedSwitches) {
+            $this->definedSwitches = new DefinedSwitches();
+        }
+
+        foreach ($switches as $switch) {
+            $this->definedSwitches->addSwitch($switch);
+            $this->switches[$switch->name] = $switch;
+        }
+    }
+
 	// ==================================================================
 	//
 	// API for the command to do its thing
