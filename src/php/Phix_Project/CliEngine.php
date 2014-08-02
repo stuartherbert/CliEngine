@@ -251,7 +251,7 @@ class CliEngine
 			}
 
 			// now process the switches that we have
-			$continue = $this->processSwitches($mergedSwitches, $parsed->switches);
+			$continue = $this->processSwitches($mergedSwitches, $parsed->switches, $additionalContext);
 			if ($continue->isComplete())
 			{
 				return $continue->returnCode;
@@ -268,7 +268,7 @@ class CliEngine
 				return 1;
 			}
 			// now process the switches that we have
-			$continue = $this->processSwitches($engineSwitches, $parsed->switches);
+			$continue = $this->processSwitches($engineSwitches, $parsed->switches, $additionalContext);
 			if ($continue->isComplete())
 			{
 				return $continue->returnCode;
@@ -283,7 +283,7 @@ class CliEngine
 			}
 
 			// now process the switches that we have
-			$continue = $this->processSwitches($commandSwitches, $parsed->switches);
+			$continue = $this->processSwitches($commandSwitches, $parsed->switches, $additionalContext);
 			if ($continue->isComplete())
 			{
 				return $continue->returnCode;
@@ -391,7 +391,7 @@ class CliEngine
 		return $parsed;
 	}
 
-	protected function processSwitches(DefinedSwitches $definedSwitches, $parsedSwitches)
+	protected function processSwitches(DefinedSwitches $definedSwitches, $parsedSwitches, $additionalContext = null)
 	{
 		// execute each switch that has been used on the command line
 		// (or that has a default value), in the order that they were
@@ -412,7 +412,8 @@ class CliEngine
 				$this,
 				$parsedSwitch->invokes,
 				$parsedSwitch->values,
-				$parsedSwitch->isUsingDefaultValue
+				$parsedSwitch->isUsingDefaultValue,
+				$additionalContext
 			);
 
 			// did we get a valid CliResult object back?
