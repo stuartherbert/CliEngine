@@ -94,7 +94,9 @@ class HelpHelper
     public function showLongHelp(CliEngine $engine)
     {
         // get the list of switches in display order
-        $sortedSwitches = $engine->getSwitchDefinitions()->getSwitchesInDisplayOrder();
+        $sortedSwitches         = $engine->getSwitchDefinitions()->getSwitchesInDisplayOrder();
+        $sortedCommandSwitches  = $engine->getSwitchDefinitions()->getSwitchesInDisplayOrder(array('actsAsCommand' => true));
+        $sortedModifierSwitches = $engine->getSwitchDefinitions()->getSwitchesInDisplayOrder(array('actsAsCommand' => false));
 
         // shorthand
         $op = $engine->output;
@@ -107,7 +109,7 @@ class HelpHelper
         $so->outputLine(null, $engine->getAppLicense());
         $so->outputBlankLine();
         $this->showSynopsis($op, $so, $engine, $sortedSwitches);
-        $this->showOptionsList($op, $so, $sortedSwitches);
+        $this->showOptionsList($op, $so, $sortedCommandSwitches, $sortedModifierSwitches);
         $this->showCommandsList($op, $so, $engine->getAppName(), $engine->getCommandsList());
     }
 
@@ -139,29 +141,56 @@ class HelpHelper
         $so->outputBlankLine();
     }
 
-    protected function showOptionsList($op, $so, $sortedSwitches)
+    protected function showOptionsList($op, $so, $sortedCommandSwitches, $sortedModifierSwitches)
     {
         $so->setIndent(0);
         $so->outputLine(null, 'OPTIONS');
         $so->addIndent(4);
-        $so->outputLine(null, 'Use the following switches in front of any <command> to have the following effects.');
-        $so->outputBlankLine();
+
         // keep track of the switches we have seen, to avoid
         // any duplication of output
         $seenSwitches = array();
 
-        foreach ($sortedSwitches['allSwitches'] as $shortOrLongSwitch => $switch)
+        // do we have any switches that are actually commands?
+        if (count($sortedCommandSwitches['allSwitches']))
         {
-           // have we already seen this switch?
-            if (isset($seenSwitches[$switch->name]))
-            {
-                // yes, skip it
-                continue;
-            }
-            $seenSwitches[$switch->name] = $switch;
+            $so->outputLine(null, 'Use the following switches to perform the following actions.');
+            $so->outputBlankLine();
 
-            // we have not seen this switch before
-            $this->showSwitchLongDetails($op, $so, $switch);
+            foreach ($sortedCommandSwitches['allSwitches'] as $shortOrLongSwitch => $switch)
+            {
+                // have we already seen this switch?
+                if (isset($seenSwitches[$switch->name]))
+                {
+                    // yes, skip it
+                    continue;
+                }
+                $seenSwitches[$switch->name] = $switch;
+
+                // we have not seen this switch before
+                $this->showSwitchLongDetails($op, $so, $switch);
+            }
+        }
+
+        // do we have any switches that are actually modifiers to commands?
+        if (count($sortedModifierSwitches['allSwitches'])) {
+            $so->outputLine(null, 'Use the following switches in front of any <command> to have the following effects.');
+            $so->outputBlankLine();
+
+            foreach ($sortedModifierSwitches['allSwitches'] as $shortOrLongSwitch => $switch)
+            {
+                // have we already seen this switch?
+                if (isset($seenSwitches[$switch->name]))
+                {
+                    // yes, skip it
+                    continue;
+                }
+                $seenSwitches[$switch->name] = $switch;
+
+                // we have not seen this switch before
+                $this->showSwitchLongDetails($op, $so, $switch);
+            }
+
         }
     }
 
