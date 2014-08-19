@@ -63,42 +63,42 @@ use Phix_Project\ConsoleDisplayLib4\StdErr;
 
 class OutputWriter
 {
-        public $argStyle = null;
-        public $commentStyle = null;
-        public $errorStyle = null;
-        public $exampleStyle = null;
-        public $highlightStyle = null;
-        public $normalStyle = null;
-        public $switchStyle = null;
-        public $urlStyle = null;
+    public $argStyle = null;
+    public $commentStyle = null;
+    public $errorStyle = null;
+    public $exampleStyle = null;
+    public $highlightStyle = null;
+    public $normalStyle = null;
+    public $switchStyle = null;
+    public $urlStyle = null;
 
-        public $errorPrefix = null;
+    public $errorPrefix = null;
 
-        public function __construct()
-        {
-                $this->stdout = new Stdout;
-                $this->stderr = new Stderr;
+    public function __construct()
+    {
+        $this->stdout = new Stdout;
+        $this->stderr = new Stderr;
 
-                $this->setupStyles();
-        }
+        $this->setupStyles();
+    }
 
-        protected function setupStyles()
-        {
-                // shorthand
-                $so = $this->stdout;
+    protected function setupStyles()
+    {
+        // shorthand
+        $so = $this->stdout;
 
-                // set the colours to use for our styles
-                $this->argStyle = array(ConsoleColor::BOLD, ConsoleColor::BLUE_FG);
-                $this->commandStyle = array(ConsoleColor::BOLD, ConsoleColor::GREEN_FG);
-                $this->commentStyle = array(ConsoleColor::BLUE_FG);
-                $this->errorStyle = array(ConsoleColor::BOLD, ConsoleColor::RED_FG);
-                $this->exampleStyle = array(ConsoleColor::BOLD, ConsoleColor::YELLOW_FG);
-                $this->highlightStyle = array(ConsoleColor::BOLD, ConsoleColor::GREEN_FG);
-                $this->normalStyle = array(ConsoleColor::NONE);
-                $this->switchStyle = array(ConsoleColor::BOLD, ConsoleColor::YELLOW_FG);
-                $this->urlStyle = array(ConsoleColor::BOLD, ConsoleColor::BLUE_FG);
+        // set the colours to use for our styles
+        $this->argStyle = array(ConsoleColor::BOLD, ConsoleColor::BLUE_FG);
+        $this->commandStyle = array(ConsoleColor::BOLD, ConsoleColor::GREEN_FG);
+        $this->commentStyle = array(ConsoleColor::BLUE_FG);
+        $this->errorStyle = array(ConsoleColor::BOLD, ConsoleColor::RED_FG);
+        $this->exampleStyle = array(ConsoleColor::BOLD, ConsoleColor::YELLOW_FG);
+        $this->highlightStyle = array(ConsoleColor::BOLD, ConsoleColor::GREEN_FG);
+        $this->normalStyle = array(ConsoleColor::NONE);
+        $this->switchStyle = array(ConsoleColor::BOLD, ConsoleColor::YELLOW_FG);
+        $this->urlStyle = array(ConsoleColor::BOLD, ConsoleColor::BLUE_FG);
 
-                // set up any prefixes that we want to use
-                $this->errorPrefix = "*** error: ";
-        }
+        // set up any prefixes that we want to use
+        $this->errorPrefix = "*** error: ";
+    }
 }
