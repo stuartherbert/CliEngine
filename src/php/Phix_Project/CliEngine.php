@@ -138,13 +138,20 @@ class CliEngine
 	 */
 	public $options;
 
+	/**
+	 * the defaults set by the caller
+	 *
+	 * @var array
+	 */
+	public $defaults;
+
 	// ==================================================================
 	//
 	// constructor and internal initialisation
 	//
 	// ------------------------------------------------------------------
 
-	public function __construct()
+	public function __construct($defaults = null)
 	{
 		// we start with an empty list of switch definitions
 		$this->engineSwitchDefinitions = new DefinedSwitches();
@@ -154,6 +161,13 @@ class CliEngine
 
 		// create our output writer
 		$this->output = new OutputWriter();
+
+		if ($defaults === null) {
+			$this->defaults = array();
+		}
+		else {
+			$this->defaults = $defaults;
+		}
 	}
 
 	// ==================================================================
@@ -213,8 +227,18 @@ class CliEngine
 	//
 	// ------------------------------------------------------------------
 
-	public function main($argv, $additionalContext)
+	public function main($argvList, $additionalContext)
 	{
+		// before we do anything else, we need to merge the defaults in
+		// with the command-line that we have been given
+		//
+		// this can have any combination of switches and command, just
+		// like a real argv
+		$argv = $this->mergeDefaultsIntoArgv($argvList);
+
+		// var_dump($argv);
+		// exit(0);
+
 		// to parse the command line successfully, we need to know what
 		// command we are parsing for, so that we can tell the parser
 		// the correct set of switches to accept
@@ -228,70 +252,28 @@ class CliEngine
 			return 1;
 		}
 
-		// what happens next all depends on whether the command is
-		// implicit or explicit
-		//
-		// if the command is implicit, then engine switches and command
-		// switches could appear together on the command line
-		//
-		// if the command is explicit, then the two sets of switches
-		// cannot appear together on the command line
-
-
-		// special case - implicit command
-		if ($commandArgvIndex === null) {
-			// implicit command
-			//
-			// expect both engine and command switches together
-			$mergedSwitches = $this->buildSwitchListFor($command);
-			$parsed = $this->parseSwitches($argv, 1, $mergedSwitches);
-			if ($parsed === null) {
-				// an error occurred
-				return 1;
-			}
-
-			// now process the switches that we have
-			$continue = $this->processSwitches($mergedSwitches, $parsed->switches, $additionalContext);
-			if ($continue->isComplete())
-			{
-				return $continue->returnCode;
-			}
+		// expect both engine and command switches together, just in case
+		$mergedSwitches = $this->buildSwitchListFor($command);
+		$parsed = $this->parseSwitches($argv, 1, $mergedSwitches);
+		if ($parsed === null) {
+			// an error occurred
+			return 1;
 		}
-		else {
-			// explicit command
-			//
-			// parse the engine switches first
-			$engineSwitches = $this->buildSwitchListFor(null);
-			$parsed = $this->parseSwitches(array_slice($argv, 0, $commandArgvIndex - 1), 1, $engineSwitches);
-			if ($parsed === null) {
-				// an error occurred
-				return 1;
-			}
-			// now process the switches that we have
-			$continue = $this->processSwitches($engineSwitches, $parsed->switches, $additionalContext);
-			if ($continue->isComplete())
-			{
-				return $continue->returnCode;
-			}
 
-			// now, parse after the command
-			$commandSwitches = $command->getSwitchDefinitions();
-			$parsed = $this->parseSwitches(array_slice($argv, $commandArgvIndex), 1, $commandSwitches);
-			if ($parsed === null) {
-				// an error occurred
-				return 1;
-			}
-
-			// now process the switches that we have
-			$continue = $this->processSwitches($commandSwitches, $parsed->switches, $additionalContext);
-			if ($continue->isComplete())
-			{
-				return $continue->returnCode;
-			}
+		// now process the switches that we have
+		$continue = $this->processSwitches($mergedSwitches, $parsed->switches, $additionalContext);
+		if ($continue->isComplete())
+		{
+			return $continue->returnCode;
 		}
 
 		// whatever is left becomes the parameters to the command
-		$cmdArgs = $parsed->args;
+		if (isset($parsed->args[0]) && $parsed->args[0] == $command->getName()) {
+			$cmdArgs = array_slice($parsed->args, 1);
+		}
+		else {
+			$cmdArgs = $parsed->args;
+		}
 
 		// now we are ready to execute the command
 		$result = $command->processCommand($this, $cmdArgs, $additionalContext);
@@ -300,41 +282,102 @@ class CliEngine
 		return $result;
 	}
 
-	protected function determineCommand($argv)
+	protected function mergeDefaultsIntoArgv($argv)
+	{
+		// our return value
+		$return = array($argv[0]);
+
+		// zero, one or both of these lists may have commands in
+		//
+		// if so, the command in $argv takes precedence
+		$argvCount          = count($argv);
+		$argvHasCommand     = false;
+		$defaultsCount      = count($this->defaults);
+		$defaultsHasCommand = false;
+
+		// do we have an explicit command in the defaults list?
+		list($defaultsCommand, $commandArgvIndex) = $this->determineCommand($this->defaults);
+		if ($defaultsCommand !== null && $commandArgvIndex !== null) {
+			// we don't want to go further than the command
+			$defaultsCount = $commandArgvIndex;
+			$defaultsHasCommand = true;
+		}
+
+		// do we have a command in the argv list?
+		list($argvCommand, $commandArgvIndex) = $this->determineCommand($argv, 0);
+		if ($argvCommand !== null && $commandArgvIndex !== null) {
+			$argvCount = $commandArgvIndex;
+			$argvHasCommand = true;
+		}
+
+		// var_dump($this->defaults);
+		// var_dump($defaultsCount);
+
+		// are they the same command?
+		if ($argvCommand === $defaultsCommand) {
+			// that makes it a lot easier :)
+
+			// merge in the switches from the defaults list
+			for($d = 0; $d < $defaultsCount; $d++) {
+				$return[] = $this->defaults[$d];
+			}
+
+			// add in command-line switches (and possibly a command)
+			for($i = 1; $i < $argvCount; $i++) {
+				$return[] = $argv[$i];
+			}
+
+			// do we need to merge in the defaults command too?
+			if ($defaultsHasCommand && !$argvHasCommand) {
+				// yes
+				for ($d = $defaultsCount; $d < count($this->defaults); $d++) {
+					$return[] = $this->defaults[$d];
+				}
+
+				return $return;
+			}
+
+			// at this point, we need to merge in whatever is left in $argv
+			for ($i = $argvCount; $i < count($argv); $i++) {
+				$return[] = $argv[$i];
+			}
+
+			return $return;
+		}
+
+		// at this point, we've been given a different command to run
+		//
+		// assume that nothing in the defaults is worth keeping
+		return $argv;
+	}
+
+	protected function determineCommand($argv, $argMin = 0)
 	{
 		// we're looking for the command that we're parsing for, so that
 		// we know what switches to parse for
 
-		// skip over (potentially) global switches
-		$argIndex = 1;
+		// a list of the commands that we have found
+		$commands = [];
+
+		// start at the right-hand side, and work left until we find
+		// a recognised command
 		$argMax   = count($argv);
-		while ($argIndex < $argMax && $argv[$argIndex]{0} == '-') {
-			$argIndex++;
-		}
-
-		if (!isset($argv[$argIndex])) {
-			// special case .. implicit command with no params or switches
-			if ($this->hasDefaultCommand()) {
-				return array($this->getDefaultCommand(), null);
+		for ($argIndex = $argMin; $argIndex < $argMax; $argIndex++)
+		{
+			$command = $this->getCommand($argv[$argIndex]);
+			if ($command !== null) {
+				// we have a command
+				return array($command, $argIndex);
 			}
-
-			// error - explicit command required, but the command line
-			// has nothing at all on it
-			return array(null, null);
 		}
 
-		// do we have a command?
-		$command = $this->getCommand($argv[$argIndex]);
-		if ($command !== null) {
-			return array($command, $argIndex);
-		}
-
-		// the command might be implicit
+		// special case .. implicit command with no params or switches
 		if ($this->hasDefaultCommand()) {
 			return array($this->getDefaultCommand(), null);
 		}
 
-		// we needed an explicit command, but we didn't get one
+		// error - explicit command required, but the command line
+		// has nothing at all on it
 		return array(null, null);
 	}
 
@@ -365,7 +408,7 @@ class CliEngine
 
 	protected function parseSwitches($argv, $argIndex, DefinedSwitches $definedSwitches)
 	{
-		// create the parser to parse the commadn line
+		// create the parser to parse the command line
 		$parser = new CommandLineParser();
 
 		// parse the command line
