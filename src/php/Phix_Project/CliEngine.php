@@ -369,7 +369,7 @@ class CliEngine
 			// no - so this is scenario 2
 			//
 			// we abandon the defaults, and let the command-line take charge
-			var_dump("scenario 2");
+			// var_dump("scenario 2");
 			$switches = $this->buildSwitchListFor($argvCommand);
 			$parsed   = $this->parseSwitches($argvCommand, $argv, 1, $switches);
 			return array($argvCommand, $switches, $parsed);
