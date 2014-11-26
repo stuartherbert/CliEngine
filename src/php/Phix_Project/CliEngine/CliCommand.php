@@ -64,114 +64,114 @@ use Phix_Project\CommandLineLib4\DefinedSwitches;
  */
 abstract class CliCommand
 {
-	protected $name;
+    protected $name;
 
-	protected $shortDescription = "no description set";
-	protected $longDescription = "This command has provided no description of itself yet.\n";
+    protected $shortDescription = "no description set";
+    protected $longDescription = "This command has provided no description of itself yet.\n";
 
-	protected $argsList = array();
+    protected $argsList = array();
 
     protected $definedSwitches = null;
     protected $switches = array();
 
-	// ==================================================================
-	//
-	// API for getting / setting
-	//
-	// ------------------------------------------------------------------
+    // ==================================================================
+    //
+    // API for getting / setting
+    //
+    // ------------------------------------------------------------------
 
-	public function getArgsList()
-	{
-		return $this->argsList;
-	}
+    public function getArgsList()
+    {
+        return $this->argsList;
+    }
 
-	public function setArgsList($list)
-	{
-		$this->argsList = $list;
+    public function setArgsList($list)
+    {
+        $this->argsList = $list;
 
-		return $this;
-	}
+        return $this;
+    }
 
-	/**
-	 * get the long description of this command
-	 *
-	 * @return string
-	 */
-	public function getLongDescription()
-	{
-	    return $this->longDescription;
-	}
+    /**
+     * get the long description of this command
+     *
+     * @return string
+     */
+    public function getLongDescription()
+    {
+        return $this->longDescription;
+    }
 
-	/**
-	 * set the long description of this command
-	 *
-	 * @param string $description
-	 *        the new long description of this command
-	 */
-	public function setLongDescription($description)
-	{
-	    $this->longDescription = $description;
+    /**
+     * set the long description of this command
+     *
+     * @param string $description
+     *        the new long description of this command
+     */
+    public function setLongDescription($description)
+    {
+        $this->longDescription = $description;
 
-	    return $this;
-	}
+        return $this;
+    }
 
-	/**
-	 * what is this command called?
-	 *
-	 * @return string
-	 */
-	public function getName()
-	{
-	    return $this->name;
-	}
+    /**
+     * what is this command called?
+     *
+     * @return string
+     */
+    public function getName()
+    {
+        return $this->name;
+    }
 
-	/**
-	 * tell this command what it is called
-	 *
-	 * @param string $name
-	 */
-	public function setName($name)
-	{
-	    $this->name = $name;
+    /**
+     * tell this command what it is called
+     *
+     * @param string $name
+     */
+    public function setName($name)
+    {
+        $this->name = $name;
 
-	    return $this;
-	}
+        return $this;
+    }
 
-	/**
-	 * get the short description of this command
-	 *
-	 * @return string
-	 */
-	public function getShortDescription()
-	{
-	    return $this->shortDescription;
-	}
+    /**
+     * get the short description of this command
+     *
+     * @return string
+     */
+    public function getShortDescription()
+    {
+        return $this->shortDescription;
+    }
 
-	/**
-	 * set the short description of this command
-	 *
-	 * @param string $description
-	 *        the new short description of this command
-	 */
-	public function setShortDescription($description)
-	{
-	    $this->shortDescription = $description;
+    /**
+     * set the short description of this command
+     *
+     * @param string $description
+     *        the new short description of this command
+     */
+    public function setShortDescription($description)
+    {
+        $this->shortDescription = $description;
 
-	    return $this;
-	}
+        return $this;
+    }
 
-	/**
-	 * return a list of switches supported by this command
-	 * @return DefinedSwitches
-	 */
-	public function getSwitchDefinitions()
-	{
+    /**
+     * return a list of switches supported by this command
+     * @return DefinedSwitches
+     */
+    public function getSwitchDefinitions()
+    {
         if ($this->definedSwitches == null) {
             $this->definedSwitches = new DefinedSwitches();
         }
 
         return $this->definedSwitches;
-	}
+    }
 
     public function getSwitchesList()
     {
@@ -212,34 +212,34 @@ abstract class CliCommand
         }
     }
 
-	// ==================================================================
-	//
-	// API for the command to do its thing
-	//
-	// ------------------------------------------------------------------
+    // ==================================================================
+    //
+    // API for the command to do its thing
+    //
+    // ------------------------------------------------------------------
 
-	/**
-	 * do the actual command
-	 *
-	 * @param  CliEngine $engine
-	 *         the tool that is running
-	 * @param  array $params
-	 *         a list of parameters (if any) that have been passed to us
+    /**
+     * do the actual command
+     *
+     * @param  CliEngine $engine
+     *         the tool that is running
+     * @param  array $params
+     *         a list of parameters (if any) that have been passed to us
      * @param  mixed $additionalContext
      *         additional data injected by the caller to CliEngine::main()
-	 * @return integer
-	 *         the value to return to the process or shell that called
-	 *         this tool
-	 *
-	 * 		   should be '0' for success, and >0 for an error
-	 */
-	abstract public function processCommand(CliEngine $engine, $params = array(), $additionalContext = null);
+     * @return int
+     *         the value to return to the process or shell that called
+     *         this tool
+     *
+     *         should be '0' for success, and >0 for an error
+     */
+    abstract public function processCommand(CliEngine $engine, $params = array(), $additionalContext = null);
 
-	// ==================================================================
-	//
-	// API for self-describing commands
-	//
-	// ------------------------------------------------------------------
+    // ==================================================================
+    //
+    // API for self-describing commands
+    //
+    // ------------------------------------------------------------------
 
     public function outputHelp(CliEngine $engine)
     {
@@ -247,7 +247,7 @@ abstract class CliCommand
         $s = new stdClass;
         $s->op = $engine->output;
         $s->so = $engine->output->stdout;
-    	$s->hh = new HelpHelper();
+        $s->hh = new HelpHelper();
         $s->appName = $engine->getAppName();
         $s->myName = $this->getName();
         $s->isDefaultCommand = false;
@@ -361,7 +361,7 @@ abstract class CliCommand
 
     protected function showSwitchSummary($s, $sortedSwitches)
     {
-    	$s->hh->showSwitchSummary($s->op, $s->so, $sortedSwitches);
+        $s->hh->showSwitchSummary($s->op, $s->so, $sortedSwitches);
     }
 
     protected function showOptions($s)
@@ -412,7 +412,7 @@ abstract class CliCommand
         foreach ($sortedSwitches['allSwitches'] as $shortOrLongSwitch => $switch)
         {
            // have we already seen this switch?
-	        if (isset($seenSwitches[$switch->name]))
+            if (isset($seenSwitches[$switch->name]))
             {
                 // yes, skip it
                 continue;
@@ -474,6 +474,6 @@ abstract class CliCommand
     protected function getSourceFilename()
     {
         $refObj = new ReflectionObject($this);
-    	return $refObj->getFileName();
+        return $refObj->getFileName();
     }
 }
