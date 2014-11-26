@@ -234,15 +234,14 @@ class CliEngine
 		//
 		// this can have any combination of switches and command, just
 		// like a real argv
-		$argv = $this->mergeDefaultsIntoArgv($argvList);
+		//
+		// as there are a lot of different scenarios to handle, it's best
+		// that mergeDefaultsIntoArgv() returns us the processed results,
+		// rather than a command-line that we have to parse yet again
+		list($command, $switches, $parsed) = $this->mergeDefaultsIntoArgv($argvList);
 
 		// var_dump($argv);
 		// exit(0);
-
-		// to parse the command line successfully, we need to know what
-		// command we are parsing for, so that we can tell the parser
-		// the correct set of switches to accept
-		list($command, $commandArgvIndex) = $this->determineCommand($argv);
 
 		// is there a command?
 		if ($command === null) {
@@ -252,31 +251,23 @@ class CliEngine
 			return 1;
 		}
 
-		// expect both engine and command switches together, just in case
-		$mergedSwitches = $this->buildSwitchListFor($command);
-		$parsed = $this->parseSwitches($argv, 1, $mergedSwitches);
+		// did we successfully parse the switches?
 		if ($parsed === null) {
 			// an error occurred
 			return 1;
 		}
 
 		// now process the switches that we have
-		$continue = $this->processSwitches($mergedSwitches, $parsed->switches, $additionalContext);
+		$continue = $this->processSwitches($switches, $parsed->switches, $additionalContext);
 		if ($continue->isComplete())
 		{
 			return $continue->returnCode;
 		}
 
 		// whatever is left becomes the parameters to the command
-		if (isset($parsed->args[0]) && $parsed->args[0] == $command->getName()) {
-			$cmdArgs = array_slice($parsed->args, 1);
-		}
-		else {
-			$cmdArgs = $parsed->args;
-		}
-
+		//
 		// now we are ready to execute the command
-		$result = $command->processCommand($this, $cmdArgs, $additionalContext);
+		$result = $command->processCommand($this, $parsed->args, $additionalContext);
 
 		// all done
 		return $result;
@@ -284,9 +275,6 @@ class CliEngine
 
 	protected function mergeDefaultsIntoArgv($argv)
 	{
-		// our return value
-		$return = array($argv[0]);
-
 		// zero, one or both of these lists may have commands in
 		//
 		// if so, the command in $argv takes precedence
@@ -295,60 +283,133 @@ class CliEngine
 		$defaultsCount      = count($this->defaults);
 		$defaultsHasCommand = false;
 
-		// do we have an explicit command in the defaults list?
-		list($defaultsCommand, $commandArgvIndex) = $this->determineCommand($this->defaults);
-		if ($defaultsCommand !== null && $commandArgvIndex !== null) {
-			// we don't want to go further than the command
-			$defaultsCount = $commandArgvIndex;
+		// special case - no defaults
+		if ($defaultsCount == 0) {
+			list($argvCommand, $commandArgvIndex) = $this->determineCommand($argv, 1);
+			if ($argvCommand === null) {
+				// something went wrong
+				return array(null, null, null);
+			}
+			$switches = $this->buildSwitchListFor($argvCommand);
+			$parsed   = $this->parseSwitches($argvCommand, $argv, 1, $switches);
+			return array($argvCommand, $switches, $parsed);
+		}
+
+		// special case - nothing on the command-line
+		if ($argvCount == 1) {
+			list($defaultsCommand, $commandDefaultsIndex) = $this->determineCommand($this->defaults, 0);
+			if ($defaultsCommand === null) {
+				// something went wrong
+				return array(null, null, null);
+			}
+			$switches = $this->buildSwitchListFor($defaultsCommand);
+			$parsed   = $this->parseSwitches($defaultsCommand, $this->defaults, 0, $switches);
+			return array($defaultsCommand, $switches, $parsed);
+		}
+
+		// at this point, the user has given us both:
+		//
+		// 1. some defaults from their config file, and
+		// 2. something on the command-line
+		//
+		// what is the user trying to do on the command-line? Here are the
+		// scenarios that we currently support
+		//
+		// 1a. use extra flags to tailor the default behaviour
+		//
+		//    in this scenario, the user wants the default behaviour, and
+		//    their flags applied too
+		//
+		//    we will add their flags to the command line before we parse
+		//    and process it
+		//
+		// 1b. change the settings for flags in the defaults list
+		//
+		//    in this scenario, the user wants to override a flag that
+		//    has been set in the list of defaults
+		//
+		//    this is currently really tricky to support well
+		//
+		// 1c. use alternative command args
+		//
+		//    in this scenario, the user wants the flags from the default
+		//    behaviour, they just don't want the default args
+		//
+		// 2. use alternative command
+		//
+		//    in this scenario, the user wants to ignore the defaults
+		//    completely
+		//
+		// any combination of scenario 1a, 1b and 1c are valid, and we need
+		// to support them well
+		//
+		// there's a lot of complexity here, and it's impossible to be sure
+		// that a user won't have an unsupported scenario in mind when they
+		// come to use the software :(
+
+		// do we have a command in the defaults list?
+		list($defaultsCommand, $commandDefaultsIndex) = $this->determineCommand($this->defaults, 0);
+		if ($defaultsCommand !== null && $commandDefaultsIndex !== null) {
 			$defaultsHasCommand = true;
 		}
 
 		// do we have a command in the argv list?
-		list($argvCommand, $commandArgvIndex) = $this->determineCommand($argv, 0);
+		list($argvCommand, $commandArgvIndex) = $this->determineCommand($argv, 1);
 		if ($argvCommand !== null && $commandArgvIndex !== null) {
-			$argvCount = $commandArgvIndex;
 			$argvHasCommand = true;
 		}
 
-		// var_dump($this->defaults);
-		// var_dump($defaultsCount);
-
-		// are they the same command?
-		if ($argvCommand === $defaultsCommand) {
-			// that makes it a lot easier :)
-
-			// merge in the switches from the defaults list
-			for($d = 0; $d < $defaultsCount; $d++) {
-				$return[] = $this->defaults[$d];
-			}
-
-			// add in command-line switches (and possibly a command)
-			for($i = 1; $i < $argvCount; $i++) {
-				$return[] = $argv[$i];
-			}
-
-			// do we need to merge in the defaults command too?
-			if ($defaultsHasCommand && !$argvHasCommand) {
-				// yes
-				for ($d = $defaultsCount; $d < count($this->defaults); $d++) {
-					$return[] = $this->defaults[$d];
-				}
-
-				return $return;
-			}
-
-			// at this point, we need to merge in whatever is left in $argv
-			for ($i = $argvCount; $i < count($argv); $i++) {
-				$return[] = $argv[$i];
-			}
-
-			return $return;
+		// special case - no command found
+		if ($defaultsCommand === null && $argvCommand === null) {
+			return array(null, null, null);
 		}
 
-		// at this point, we've been given a different command to run
+		// are they the same command?
+		if ($argvCommand !== $defaultsCommand) {
+			// no - so this is scenario 2
+			//
+			// we abandon the defaults, and let the command-line take charge
+			var_dump("scenario 2");
+			$switches = $this->buildSwitchListFor($argvCommand);
+			$parsed   = $this->parseSwitches($argvCommand, $argv, 1, $switches);
+			return array($argvCommand, $switches, $parsed);
+		}
+
+		// at this point, we are in scenario 1
 		//
-		// assume that nothing in the defaults is worth keeping
-		return $argv;
+		// we don't yet know which part(s) of scenario 1 we are facing
+		//
+		// let's start by understanding both command-lines
+		$switches = $this->buildSwitchListFor($argvCommand);
+		$parsedDefaults = $this->parseSwitches($argvCommand, $this->defaults, 0, $switches);
+		$parsedArgv     = $this->parseSwitches($argvCommand, $argv, 1, $switches);
+		if ($parsedDefaults === null || $parsedArgv === null) {
+			// an error occurred
+			return array(null, null, null);
+		}
+
+		// at this point, we have parsed both command-lines, and now need
+		// to selectively merge them into one final, returnable list
+		//
+		// this is crude, but it should do the trick
+		foreach ($parsedArgv->switches as $key => $parsedSwitch) {
+			// do not let a switch's default value override anything
+			// that has been set in the config file
+			if ($parsedSwitch->testIsDefaultValue() && isset($parsedDefaults->switches[$key])) {
+				continue;
+			}
+
+			// if we get here, override the switch in the config file!
+			$parsedDefaults->switches[$key] = $parsedSwitch;
+		}
+
+		// don't forget to override command-line args if needed
+		if (count($parsedArgv->args) > 0) {
+			$parsedDefaults->args = $parsedArgv->args;
+		}
+
+		// all done
+		return array($argvCommand, $switches, $parsedDefaults);
 	}
 
 	protected function determineCommand($argv, $argMin = 0)
@@ -406,7 +467,7 @@ class CliEngine
 		return $definedSwitches;
 	}
 
-	protected function parseSwitches($argv, $argIndex, DefinedSwitches $definedSwitches)
+	protected function parseSwitches($command, $argv, $argIndex, DefinedSwitches $definedSwitches)
 	{
 		// create the parser to parse the command line
 		$parser = new CommandLineParser();
@@ -430,7 +491,13 @@ class CliEngine
 			return null;
 		}
 
-		// if we get here, all is well
+		// at this point, we need to remove the command's name from
+		// the arguments list
+		if (isset($parsed->args[0]) && $parsed->args[0] == $command->getName()) {
+			$parsed->args = array_slice($parsed->args, 1);
+		}
+
+		// all done
 		return $parsed;
 	}
 
