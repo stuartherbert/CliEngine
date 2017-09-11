@@ -63,5 +63,5 @@ use Phix_Project\CommandLineLib4\DefinedSwitch;
  */
 abstract class CliSwitch extends DefinedSwitch
 {
-	abstract public function process(CliEngine $engine, $invokes = 1, $params = array(), $isDefaultParam = false);
+	abstract public function process(CliEngine $engine, $invokes = 1, $params = array(), $isDefaultParam = false, $additionalContext = null);
 }

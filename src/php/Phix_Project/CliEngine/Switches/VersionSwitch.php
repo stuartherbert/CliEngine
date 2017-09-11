@@ -77,7 +77,7 @@ class VersionSwitch extends CliSwitch
 		$this->setSwitchActsAsCommand();
 	}
 
-	public function process(CliEngine $engine, $invokes = 1, $params = array(), $isDefaultParam = false)
+	public function process(CliEngine $engine, $invokes = 1, $params = array(), $isDefaultParam = false, $additionalContext = null)
 	{
 		// write the version to the output
 		$engine->output->stdout->outputLine(

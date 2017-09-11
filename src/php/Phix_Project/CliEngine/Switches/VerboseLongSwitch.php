@@ -90,7 +90,7 @@ class VerboseLongSwitch extends CliSwitch
 		$this->setArgValidator(new Type_MustBeIntegerInRange($this->min, $this->max));
 	}
 
-	public function process(CliEngine $engine, $invokes = 1, $params = array(), $isDefaultParam = false)
+	public function process(CliEngine $engine, $invokes = 1, $params = array(), $isDefaultParam = false, $additionalContext = null)
 	{
 		// set the verbosity level, but only if we're not being given
 		// our default parameter

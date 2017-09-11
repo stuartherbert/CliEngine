@@ -78,7 +78,7 @@ class ShortHelpSwitch extends CliSwitch
 		$this->setSwitchActsAsCommand();
 	}
 
-	public function process(CliEngine $engine, $invokes = 1, $params = array(), $isDefaultParam = false)
+	public function process(CliEngine $engine, $invokes = 1, $params = array(), $isDefaultParam = false, $additionalContext = null)
 	{
 		// use the HelpHelper to do this
 		$hh = new HelpHelper();
