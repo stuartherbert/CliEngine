@@ -81,7 +81,7 @@ class VerboseShortSwitch extends CliSwitch
 		$this->setSwitchIsRepeatable();
 	}
 
-	public function process(CliEngine $engine, $invokes = 1, $params = array(), $isDefaultParam = false)
+	public function process(CliEngine $engine, $invokes = 1, $params = array(), $isDefaultParam = false, $additionalContext = null)
 	{
 		// increase the verbosity to reflect how many times we've been called
 		$engine->options->verbosity = min($invokes, $this->max);
